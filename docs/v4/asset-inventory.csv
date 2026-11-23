@@ -1,0 +1,19 @@
+id,chapter,role,filename,source,original_dimensions,delivery_dimensions,alpha,illustration_style,focal_point,status,action
+A01_BANYAN,CH01,Background Anchor,public/art/botanical/banyan-tree.webp,Generated (ImageGen),1376x768,1376x768,true,Graphite & Ink,center-bottom,Approved,Retain in CH01 & CH05
+A01_POTTER,CH01,Foreground Figure,public/art/people/potter.webp,Generated (ImageGen),700x768,700x768,true,Ink & Wash,center,Approved,Retain in CH01
+A01_MATRIMANDIR_STUDY,CH01,Portal Centerpiece,public/art/architecture/matrimandir-study.webp,Generated (ImageGen),1376x768,1376x768,true,Graphite Architectural,center,Approved,Retain in CH01
+A01_GALAXY_PLAN,CH03,Archival Drawing,public/art/architecture/galaxy-plan.webp,Generated (ImageGen),1376x768,1376x768,false,Graphite Drafting,center,Approved,Retain in CH03 & CH09
+A01_ARCHITECT,CH03,Margin Accent,public/art/people/architect.webp,Generated (ImageGen),700x768,700x768,true,Ink & Graphite,bottom-left,Approved,Retain in CH03 & CH07
+A01_LEAF_ROSETTE,CH03,Botanical Detail,public/art/details/leaf-rosette.webp,Generated (ImageGen),600x600,600x600,true,Botanical Pencil,top-right,Approved,Retain as Accent
+A01_NEEM_BRANCH,CH04,Botanical Detail,public/art/details/neem-branch.webp,Generated (ImageGen),600x600,600x600,true,Botanical Color,bottom-right,Approved,Retain as Accent
+P02_COVER_MATRIMANDIR,CH02,Defective Background,public/images/auroville/cover-matrimandir.webp,Sourced Photo,2100x1400,2100x1400,false,Documentary Photo,center-bottom,Deprecating,Replace with Multi-Layer Panorama
+P02_MATRIMANDIR_DETAIL,CH02,Supporting Photo,public/images/auroville/matrimandir-detail.webp,Sourced Photo,2400x1350,2400x1350,false,Documentary Photo,center,Deprecating,Replace with Architectural Detail Drawing
+P03_ARCHIVE_BANYAN,CH03,Supporting Photo,public/images/auroville/archive-community.webp,Sourced Photo,1600x1000,1600x1000,false,Documentary Photo,center,Deprecating,Replace with Botanical Study
+P04_CRAFT_TERRACOTTA,CH04,Supporting Photo,public/images/auroville/creative-work.webp,Sourced Photo,1920x1080,1920x1080,false,Documentary Photo,center,Deprecating,Replace with Maker Illustration
+P04_TOWNHALL,CH04,Supporting Photo,public/images/auroville/architecture-modern.webp,Sourced Photo,2048x1365,2048x1365,false,Documentary Photo,center,Deprecating,Replace with Architectural Study
+A02_PANO_SKY,CH02,Panorama Far,public/illustrated/ch02-page/panorama-sky-far.webp,Pending Gen,3840x2160,2560x1440,false,Pencil & Wash Sky,center-top,Planned,Generate Phase 1
+A02_PANO_TERRAIN,CH02,Panorama Mid,public/illustrated/ch02-page/panorama-terrain-mid.webp,Pending Gen,3840x2160,2560x1440,true,Red Earth & Architecture,center,Planned,Generate Phase 1
+A02_PANO_FOREGROUND,CH02,Panorama Near,public/illustrated/ch02-page/panorama-botanical-near.webp,Pending Gen,2560x1440,2560x1440,true,Fine Ink Botanical,left-bottom,Planned,Generate Phase 1
+A02_PAPER_FOLD,CH02,Paper Geometry,public/illustrated/ch02-page/paper-fold-mask.svg,Vector Authored,1920x1080,1920x1080,true,Paper Vector Mask,right-edge,Planned,Author Phase 1
+A03_ELEVATION_OUTLINE,CH03,Architectural Contour,public/illustrated/ch03-structure/matrimandir-outline.webp,Pending Gen,2560x1440,1920x1080,true,Graphite Line Contour,center,Planned,Generate Phase 1
+A03_ELEVATION_SHADED,CH03,Architectural Toned,public/illustrated/ch03-structure/matrimandir-shaded.webp,Pending Gen,2560x1440,1920x1080,true,Graphite & Gold Shaded,center,Planned,Generate Phase 1

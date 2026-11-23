@@ -1,0 +1,121 @@
+id,chapter,priority,trigger,description,acceptance_criteria,phase,status
+I001,CH01,P1,Pointer Proximity,Reveal graphite cross-hatching on hero drawing within 24px mask,Texture contained within bounds,Phase 1,Verified
+I002,CH01,P1,Scroll 0-15%,Trace title hand-drawn underline via SVG path,Reversible path draw,Phase 1,Verified
+I003,CH01,P2,Hover/tap figure,Reveal alternate observational sketch & caption,Accessible focus equivalent,Phase 5,Planned
+I004,CH01,P2,Pointer Proximity,Subtly displace 2-3 leaf clusters on banyan tree,Restrained settle without flutter,Phase 5,Planned
+I005,CH01,P2,Scroll Direction,Turn hand-drawn compass needle degrees with progress,No infinite spin loop,Phase 5,Planned
+I006,CH01,P2,Click/tap stamp,Apply ink impression with gentle paper indentation,Toggle/clear accessible,Phase 5,Planned
+I007,CH01,P1,Focus hotspot,Reveal handwritten-style editorial note as HTML text,Legible HTML text,Phase 1,Verified
+I008,CH01,P2,Pointer over type,Expose colored-pencil texture in selected type region,Type remains readable,Phase 5,Planned
+I009,CH01,P0,Scroll through hero,Progressively extend main authored pencil line across hero,Path connects to Scene 02 fold,Phase 1,Verified
+I010,CH01,P0,Handoff 01->02,Line becomes paper-edge fold geometry for Chapter 02,Zero flash or seam,Phase 1,Verified
+I011,CH02,P0,Scroll entry,Animate illustrated paper corner lift via 2D mask,Clean non-distorted fold,Phase 1,Verified
+I012,CH02,P0,Scroll into chapter,Reveal new high-res layered landscape through fold,Sharp at 1440x900 native,Phase 1,Verified
+I013,CH02,P1,Scroll scrub,Parallax foreground botanical <4% viewport relative to background,No exposed blank edges,Phase 1,Verified
+I014,CH02,P2,Pointer movement,Shift view direction 6-10px within safe overscan,Touch variant omits hover,Phase 5,Planned
+I015,CH02,P1,Drag paper tab,Expose second planned drawing layer with drag affordance,Releases into deliberate state,Phase 1,Verified
+I016,CH02,P2,Scroll,Advance illustrated cloud shadows between keyframes,Subtle background texture,Phase 5,Planned
+I017,CH02,P1,Progress toward horizon,Draw narrow red-earth path through panorama,Tracks illustrated terrain,Phase 1,Verified
+I018,CH02,P2,Hover/tap landmark,Open miniature high-detail inset study beside element,Legible inset modal,Phase 5,Planned
+I019,CH02,P2,Scroll through text,Large headline aligns with horizon into clean type zone,High contrast maintained,Phase 5,Planned
+I020,CH02,P0,Handoff 02->03,Transform path contour into circular architectural line art,First and last frames match,Phase 1,Verified
+I021,CH03,P0,Scroll entry,Trace main architectural silhouette & construction guides,Identifiable structural drawing,Phase 1,Verified
+I022,CH03,P1,Scroll progress,Fill select ring details with gold colored-pencil shading,Restrained gold accents,Phase 1,Verified
+I023,CH03,P0,Drag/keyboard slider,Compare outline and shaded illustration via aligned views,Keyboard/touch operable,Phase 1,Verified
+I024,CH03,P1,Click annotation,Expand accurate structural callout into designed inset,Verified factual text,Phase 1,Verified
+I025,CH03,P2,Toggle drawing layer,Separate plan line and shaded views slightly in 2D,No 3D distortion,Phase 5,Planned
+I026,CH03,P2,Hover/tap detail,Show separately rendered surface fragment,Restores composition cleanly,Phase 5,Planned
+I027,CH03,P1,Move bounded focus lens,Reveal high-resolution hatching without pixelation,Stays within bounds,Phase 1,Verified
+I028,CH03,P1,Scroll close inspection,Shift from wide study to inset close-up,No uncontrolled scale jump,Phase 1,Verified
+I029,CH03,P2,Choose single detail,Morph authored contour into organic line,Stable interpolation,Phase 5,Planned
+I030,CH03,P0,Handoff 03->04,Concentric contours become flat topographic earth paths,Seamless geometry match,Phase 1,Verified
+I031,CH04,P0,Scroll entry,Travel across red-earth panorama via vertical scroll,Fluid vertical scroll,Phase 2,Planned
+I032,CH04,P1,Pointer drag on dust patch,Wipe away dust mask to reveal linework beneath,Localized wipe effect,Phase 2,Planned
+I033,CH04,P2,Drag defined reveal zone,Expose buried root/soil annotation,Constrained area,Phase 2,Planned
+I034,CH04,P2,Click strata label,Focus designed soil cross-section callout,Authentic ecology notes,Phase 2,Planned
+I035,CH04,P0,Pick and place seed,Drag illustrated seed to planting region,Snap target with touch support,Phase 2,Planned
+I036,CH04,P1,After seed placement,Trace pre-authored root lines,Clean vector paths,Phase 2,Planned
+I037,CH04,P1,Scroll after placement,Progress vegetation from sparse to young growth,Stateful growth stages,Phase 2,Planned
+I038,CH04,P2,Scroll position,Move illustrated shadow shapes along authored paths,Natural earth tones,Phase 2,Planned
+I039,CH04,P2,Hover/tap plant,Reveal original botanical detail plate,Accurate flora study,Phase 2,Planned
+I040,CH04,P0,Handoff 04->05,Promote main root layer into CH05 banyan structure,Line thickness matched,Phase 2,Planned
+I041,CH05,P0,Scroll entry,Draw major branch pathways in botanical order,Authored branch sequence,Phase 2,Planned
+I042,CH05,P1,Scroll phase,Unfold selected leaf clusters from prepared silhouettes,No generic scaling,Phase 2,Planned
+I043,CH05,P2,Pointer proximity,Bend nearby flexible branch subtly then restore,Restrained physics,Phase 2,Planned
+I044,CH05,P2,Focus leaf detail,Show illustrated leaf anatomy in pullout plate,Readable botanical text,Phase 2,Planned
+I045,CH05,P1,Drag defined vine handle,Move prepared vine layer within elastic bounds,Elastic boundary limits,Phase 2,Planned
+I046,CH05,P0,Scroll mid-chapter,Open foreground canopy gap to show deeper botanical art,Continuous depth reveal,Phase 2,Planned
+I047,CH05,P2,Hover/tap bird,Reveal tiny original bird illustration response,No autoplay sound,Phase 2,Planned
+I048,CH05,P1,Scroll,Shift authored beams of light through canopy openings,Art linework preserved,Phase 2,Planned
+I049,CH05,P2,Tap hidden root marker,Reveal miniature drawn pathway within root system,Optional discovery,Phase 2,Planned
+I050,CH05,P0,Handoff 05->06,Convert root stroke to watercourse via recolor/morph,Path never disappears,Phase 2,Planned
+I051,CH06,P0,Scroll entrance,Trace flowing watercourse along fixed map path,Reversible flow direction,Phase 2,Planned
+I052,CH06,P2,Pointer movement on water,Generate 1-2 ink ripple rings at nearby focus point,Lightweight canvas draw,Phase 2,Planned
+I053,CH06,P2,Drag stone in bounded area,Swap between three authored current compositions,Discrete clean states,Phase 2,Planned
+I054,CH06,P2,Focus terrain point,Reveal layered contour drawings via shape mask,Clean reveal and restore,Phase 2,Planned
+I055,CH06,P2,Click water mark,Follow single drawn droplet along branch path,Smooth spline animation,Phase 2,Planned
+I056,CH06,P0,Drag paper overlay,Reveal water-system study and annotation underneath,Touch/keyboard operable,Phase 2,Planned
+I057,CH06,P2,Hover reflection,Change line reflection alignment in small bounds,Subtle reflection shift,Phase 2,Planned
+I058,CH06,P1,Scroll through overview,Recompose landscape view into side cross-section plate,No 3D rotation jitter,Phase 2,Planned
+I059,CH06,P1,Scroll through title,Send waterline under legible headline cutout,Contrast maintained,Phase 2,Planned
+I060,CH06,P0,Handoff 06->07,Carry watercourse stroke into pen line on maker table,Matching boundary vector,Phase 2,Planned
+I061,CH07,P0,Scroll entry,Reveal authored overhead drawing-table scene,Composed still layout,Phase 3,Planned
+I062,CH07,P1,Scroll,Slide two illustrated sheets into specific positions,Measured coordinates,Phase 3,Planned
+I063,CH07,P1,Drag clay tool,Cycle between three prepared pottery silhouettes,Discrete artistic states,Phase 3,Planned
+I064,CH07,P0,Stamp action,Apply one of three illustrated motifs to pottery,Repeatable & undoable,Phase 3,Planned
+I065,CH07,P2,Hover/tap tools,Show detail enlargements and concise labels,Non-intrusive annotations,Phase 3,Planned
+I066,CH07,P0,Drag fold tab,Fold sheet to reveal another authored illustration,No tearing artifacts,Phase 3,Planned
+I067,CH07,P2,Select swatch,Change restrained accent palette of workpiece,Accessible contrast,Phase 3,Planned
+I068,CH07,P1,Drag structured blocks,Assemble 2D drafting pieces into guided arrangement,Snap guides with reset,Phase 3,Planned
+I069,CH07,P1,Scroll exit,Align papers into illustrated portrait wall,Zero vanishing assets,Phase 3,Planned
+I070,CH07,P0,Handoff 07->08,Central human study expands into CH08 lead figure,Silhouette continuity,Phase 3,Planned
+I071,CH08,P0,Scroll entrance,Reveal large original figures through layered masks,Layered editorial reveals,Phase 3,Planned
+I072,CH08,P1,Focus individual figure,Show short illustrated activity vignette,Respectful representation,Phase 3,Planned
+I073,CH08,P0,Click illustrated doorway,Door opens to reveal micro-scene on interior,Button semantics for a11y,Phase 3,Planned
+I074,CH08,P2,Hover/tap window,Display tiny everyday action through window,Pauses when offscreen,Phase 3,Planned
+I075,CH08,P1,Drag curtain paper tab,Reveal underlying character drawing,Reachable handle,Phase 3,Planned
+I076,CH08,P1,Scroll state,Rearrange group scene into balanced portrait spread,Core figures legible,Phase 3,Planned
+I077,CH08,P2,Focus handwritten text mark,Show concise artistic dialogue line,Explicitly labeled fiction,Phase 3,Planned
+I078,CH08,P0,Select character,Enter self-contained short visual story,Returns to exact scroll point,Phase 3,Planned
+I079,CH08,P1,Scroll toward end,Connect vignette locations into continuous path,Clear path ordering,Phase 3,Planned
+I080,CH08,P0,Handoff 08->09,Lines between stories become radial city drawing,Smooth vector convergence,Phase 3,Planned
+I081,CH09,P0,Scroll entry,Extend radial planning lines from central anchor,Crisp drafting geometry,Phase 3,Planned
+I082,CH09,P1,Drag in explore mode,Pan bounded vector map while UI remains fixed,No page-scroll conflict,Phase 3,Planned
+I083,CH09,P0,Pinch / zoom controls,Zoom map to legible detail levels with preserved focus,Touch & button support,Phase 3,Planned
+I084,CH09,P2,Hover/tap planned zone,Change hatch pattern and label emphasis,Accessible without color alone,Phase 3,Planned
+I085,CH09,P0,Select planned zone,Reveal mini illustration and verified description,Distinguish concept vs built,Phase 3,Planned
+I086,CH09,P1,Click route line,Trace prepared path through city plan,Clear visual trace,Phase 3,Planned
+I087,CH09,P1,Toggle map study layer,Switch conceptual linework and detailed annotations,Remembers state,Phase 3,Planned
+I088,CH09,P2,Click paper tab,Open supplementary drawing sheet over base plan,Close restores view,Phase 3,Planned
+I089,CH09,P1,Scroll exit,Abstract selected route strokes into atlas composition,Works from any selection,Phase 3,Planned
+I090,CH09,P0,Handoff 09->10,Radial road network expands into atlas pathways,Preserved visual identity,Phase 3,Planned
+I091,CH10,P0,Enter Explore Atlas mode,Pan large illustration freely within defined limits,Can exit back cleanly,Phase 4,Planned
+I092,CH10,P0,Wheel with modifier / zoom,Zoom through verified detail levels without blur,High-res detail tiers,Phase 4,Planned
+I093,CH10,P2,Hover/focus landmark,Reveal small original sketch preview,Not essential for progression,Phase 4,Planned
+I094,CH10,P0,Select landmark,Open illustrated story panel linked to exact anchor,Does not trap UI,Phase 4,Planned
+I095,CH10,P1,Choose atlas path,Animate hand-drawn path connecting selected anchors,Artistic route animation,Phase 4,Planned
+I096,CH10,P2,Discover hidden motif,Reveal tiny illustrated surprise with optional counter,Optional discovery,Phase 4,Planned
+I097,CH10,P1,Toggle drawing treatment,Switch graphite to colored-pencil atlas layer,Matched coordinates,Phase 4,Planned
+I098,CH10,P2,Activate detail lens,Show enlarged high-res linework at focus point,Keyboard navigable,Phase 4,Planned
+I099,CH10,P1,Choose route sequence,Highlight selected atlas stops with clear order,Logical ordering,Phase 4,Planned
+I100,CH10,P0,Handoff 10->11,Zoom out to atlas-as-paper on drafting desk,Smooth scale transition,Phase 4,Planned
+I101,CH11,P0,Scroll entry,Separate atlas artwork into editable layers,Only active pieces move,Phase 4,Planned
+I102,CH11,P0,Drag architectural pieces,Place small set of 2D structures in defined zones,Snapping & reset work,Phase 4,Planned
+I103,CH11,P1,Choose greenery tool,Add bounded illustrated trees or botanical elements,Controlled elements,Phase 4,Planned
+I104,CH11,P0,Draw on work area,Create simplified paths connecting placed structures,Undo & touch supported,Phase 4,Planned
+I105,CH11,P1,Select medium,Change stroke treatment (ink, graphite, pencil),Real material aesthetics,Phase 4,Planned
+I106,CH11,P1,Choose palette,Update controlled art accent values,Maintains contrast,Phase 4,Planned
+I107,CH11,P0,Undo / redo,Reverse and reapply semantic edits deterministically,Safe bounds,Phase 4,Planned
+I108,CH11,P1,Move / align object,Snap to subtle drafting guides with clear feedback,Predictable alignment,Phase 4,Planned
+I109,CH11,P1,Preview artwork,Present completed composition in designed frame,State retained on exit,Phase 4,Planned
+I110,CH11,P0,Handoff 11->12,Transform visitor composition into poster sheet,Uses actual user artwork,Phase 4,Planned
+I111,CH12,P1,Choose paper material,Apply subtle paper texture in preview,Lines remain sharp,Phase 4,Planned
+I112,CH12,P1,Select collected motifs,Place 1-3 curated illustrated discoveries onto poster,Graceful default state,Phase 4,Planned
+I113,CH12,P0,Draw signature mark,Record visitor stroke in bounded signature area,Fallback mark available,Phase 4,Planned
+I114,CH12,P1,Select mark color,Use constrained ink/earth/forest palette,Instant & undoable,Phase 4,Planned
+I115,CH12,P2,Choose frame,Switch among restrained illustrated borders,Balanced framing,Phase 4,Planned
+I116,CH12,P0,Open full poster preview,Compose art, captions and signature into exportable sheet,Matches saved file,Phase 4,Planned
+I117,CH12,P1,Activate visual recap,Show miniature illustrated chapter sequence,Accessible static mode,Phase 4,Planned
+I118,CH12,P0,Download PNG,Render approved poster layers to high-quality PNG,Zero CORS errors,Phase 4,Planned
+I119,CH12,P1,Restart experience,Reset editing and interaction states via explicit button,Returns to opening state,Phase 4,Planned
+I120,CH12,P0,Final scroll / manual replay,Visitor central stroke morphs back to opening mark,No infinite trap,Phase 4,Planned

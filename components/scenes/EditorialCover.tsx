@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import SvgStrokePath from "@/components/interactions/SvgStrokePath";
+import StoryPath from "@/components/interactions/StoryPath";
 
 interface EditorialCoverProps {
   progress: number; // Global scroll progress 0.0 - 1.0
@@ -233,6 +234,17 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
         </div>
       </div>
 
+      {/* CONTINUOUS PENCIL LINE (Interactions I009 & I010) */}
+      {/* Emerges from the central drawing and sweeps right to the page fold boundary of CH02 */}
+      <div
+        className="absolute top-1/2 left-1/2 right-0 -translate-y-1/2 z-20 pointer-events-none transition-opacity duration-200"
+        style={{
+          opacity: Math.max(0, localProgress * 2),
+        }}
+      >
+        <StoryPath progress={Math.min(1, localProgress * 1.8)} variant="hero-to-fold" />
+      </div>
+
       {/* BOTTOM EDITORIAL STATEMENT & SCROLL INVITATION */}
       <div
         className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 pb-14 md:pb-16 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 transition-transform duration-300"
@@ -253,7 +265,7 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
 
         <div className="flex items-center gap-3 font-mono text-[10px] md:text-[11px] uppercase tracking-widest text-ink-muted">
           <span className="w-2 h-2 rounded-full bg-terracotta animate-pulse" />
-          <span>SCROLL TO ENTER PHOTOGRAPHY</span>
+          <span>SCROLL TO OPEN ILLUSTRATED WORLD</span>
         </div>
       </div>
     </div>

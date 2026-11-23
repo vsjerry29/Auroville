@@ -1,8 +1,8 @@
 "use client";
 
 import EditorialCover from "@/components/scenes/EditorialCover";
-import InsidePhotograph from "@/components/scenes/InsidePhotograph";
-import ArchiveScene from "@/components/scenes/ArchiveScene";
+import Chapter02PageOpens from "@/components/scenes/Chapter02PageOpens";
+import Chapter03GoldenStructure from "@/components/scenes/Chapter03GoldenStructure";
 import LivingGrid from "@/components/scenes/LivingGrid";
 import ChapterNavigation from "@/components/experience/ChapterNavigation";
 import ProgressIndicator from "@/components/experience/ProgressIndicator";
@@ -27,8 +27,8 @@ export default function ExperienceStage({ progress, onNavigate }: ExperienceStag
       {/* Persistent Scene Layering */}
       <div className="relative w-full h-full">
         <EditorialCover progress={progress} active={isScene01Active} />
-        <InsidePhotograph progress={progress} active={isScene02Active} />
-        <ArchiveScene progress={progress} active={isScene03Active} />
+        <Chapter02PageOpens progress={progress} active={isScene02Active} />
+        <Chapter03GoldenStructure progress={progress} active={isScene03Active} />
         <LivingGrid
           progress={progress}
           active={isScene04Active}

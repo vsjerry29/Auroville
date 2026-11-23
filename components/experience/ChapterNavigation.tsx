@@ -84,15 +84,15 @@ export default function ChapterNavigation({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-2xl w-full bg-paper border border-border archival-shadow p-8 md:p-12"
+            className="relative max-w-2xl w-full max-h-[85vh] flex flex-col bg-paper border border-border archival-shadow p-6 md:p-10"
           >
-            <div className="flex items-center justify-between pb-6 border-b border-border">
+            <div className="flex items-center justify-between pb-5 border-b border-border shrink-0">
               <div>
                 <span className="font-mono text-[10px] text-terracotta uppercase tracking-widest font-semibold">
-                  DIRECTORY / FOUR CHAPTERS
+                  DIRECTORY / 12 CHAPTERS · 4 ACTS
                 </span>
-                <h2 className="font-serif italic text-2xl md:text-3xl text-ink font-light mt-1">
-                  A Place Still Becoming
+                <h2 className="font-serif italic text-2xl md:text-3xl text-ink font-light mt-0.5">
+                  The World You Draw
                 </h2>
               </div>
               <button
@@ -104,7 +104,7 @@ export default function ChapterNavigation({
               </button>
             </div>
 
-            <div className="divide-y divide-border mt-4">
+            <div className="divide-y divide-border mt-2 overflow-y-auto pr-2 custom-scrollbar">
               {CHAPTERS.map((ch) => {
                 const isActive = activeChapter.id === ch.id;
                 return (
