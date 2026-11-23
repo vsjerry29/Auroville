@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 
 interface PaperFoldProps {
   scrollProgress: number; // 0.0 to 1.0 (local progress)
@@ -15,17 +15,17 @@ export default function PaperFold({
   className = "",
   onManualDrag,
 }: PaperFoldProps) {
-  // Manual drag offset for the pull-tab (Interaction I015)
+  // Manual drag offset for peeling the page
   const [manualOffset, setManualOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const startXRef = useRef<number>(0);
 
-  // Effective reveal percentage (0% = closed fold, 100% = fully opened panorama)
-  // Combines scrollProgress with any interactive drag
-  const effectiveProgress = Math.min(
-    1,
-    Math.max(0, scrollProgress + manualOffset)
-  );
+  // Progressive reveal: ease-out curve so landscape opens generously early
+  // Effective reveal percentage (0% = closed, 100% = fully open)
+  const normalizedProgress = Math.min(1, Math.max(0, scrollProgress + manualOffset));
+  // Ease-out so the landscape expands generously early without a long empty cream slit
+  const curvedProgress = Math.pow(normalizedProgress, 0.82);
+  const revealPercent = Math.min(100, Math.max(0, curvedProgress * 100));
 
   const handlePointerDown = (e: React.PointerEvent) => {
     setIsDragging(true);
@@ -36,15 +36,13 @@ export default function PaperFold({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
     const deltaX = (e.clientX - startXRef.current) / window.innerWidth;
-    // Dragging left peels the page open further
-    const newOffset = Math.max(-0.4, Math.min(0.6, -deltaX * 0.8));
+    const newOffset = Math.max(-0.4, Math.min(0.6, -deltaX * 0.9));
     setManualOffset(newOffset);
     if (onManualDrag) onManualDrag(newOffset);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
     setIsDragging(false);
-    // Smoothly settle back to 0 so scroll remains authoritative
     setManualOffset(0);
     try {
       (e.target as HTMLElement).releasePointerCapture(e.pointerId);
@@ -53,17 +51,13 @@ export default function PaperFold({
     }
   };
 
-  // Polygon mask calculating the peeling page fold from left to right across the screen
-  // At progress = 0: 0% visible (closed)
-  // At progress = 1: 100% visible (fully open)
-  const revealPercent = Math.min(100, Math.max(0, effectiveProgress * 100));
-  // An angled fold crease with realistic page curvature
+  // Realistic angled paper crease
   const topFoldX = revealPercent;
-  const bottomFoldX = Math.max(0, revealPercent - 6);
+  const bottomFoldX = Math.max(0, revealPercent - 4);
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
-      {/* Underlying Panorama Scene revealed through the opening fold */}
+      {/* Underlying Panorama Scene revealed through the peeling fold */}
       <div
         className="absolute inset-0 w-full h-full transition-all duration-75"
         style={{
@@ -73,12 +67,12 @@ export default function PaperFold({
         {children}
       </div>
 
-      {/* Folding Page Crease / Shadow / Tab (Interactions I011 & I015) */}
-      {effectiveProgress > 0.02 && effectiveProgress < 0.98 && (
+      {/* Tactile Paper Crease & Shadow (Authentic book edge, zero generic UI buttons) */}
+      {revealPercent > 1 && revealPercent < 99 && (
         <div
           role="slider"
           aria-label="Drag page fold to reveal panorama"
-          aria-valuenow={Math.round(effectiveProgress * 100)}
+          aria-valuenow={Math.round(revealPercent)}
           aria-valuemin={0}
           aria-valuemax={100}
           tabIndex={0}
@@ -90,23 +84,21 @@ export default function PaperFold({
             if (e.key === "ArrowRight") setManualOffset((prev) => Math.min(0.5, prev + 0.1));
             if (e.key === "ArrowLeft") setManualOffset((prev) => Math.max(-0.3, prev - 0.1));
           }}
-          className="absolute top-0 bottom-0 z-20 cursor-ew-resize flex items-center justify-center select-none pointer-events-auto"
+          className="absolute top-0 bottom-0 z-20 cursor-ew-resize select-none pointer-events-auto"
           style={{
             left: `${revealPercent}%`,
-            width: "36px",
+            width: "28px",
             transform: "translateX(-50%)",
           }}
         >
-          {/* Subtle paper fold highlight & shadow */}
-          <div className="absolute inset-y-0 w-[1px] bg-ink/25 shadow-[0_0_20px_rgba(25,25,23,0.2)]" />
-
-          {/* Tactile Pull-Tab affordance (Interaction I015) */}
-          <div className="relative px-2 py-3 bg-paper border border-border archival-shadow-subtle rounded-xs flex flex-col items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-terracotta">
-            <span>▶</span>
-            <span className="hidden sm:inline [writing-mode:vertical-rl] rotate-180">
-              PEEL PAGE
-            </span>
-          </div>
+          {/* Subtle paper fold highlight rule & natural drop shadow */}
+          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1.5px] bg-[#E8E1D5]" />
+          <div
+            className="absolute inset-y-0 left-1/2 w-12 pointer-events-none"
+            style={{
+              background: "linear-gradient(to right, rgba(25, 25, 23, 0.14), rgba(25, 25, 23, 0.03) 60%, transparent)",
+            }}
+          />
         </div>
       )}
     </div>

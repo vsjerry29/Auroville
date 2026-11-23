@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
 import PaperFold from "@/components/interactions/PaperFold";
 import StoryPath from "@/components/interactions/StoryPath";
-import { Info, X } from "lucide-react";
+import LivingContourField from "@/components/experience/LivingContourField";
+import { X, Compass } from "lucide-react";
 
 interface Chapter02PageOpensProps {
   progress: number; // Global scroll progress 0.0 - 1.0
@@ -18,50 +19,63 @@ export default function Chapter02PageOpens({
   // Normalize progress for Scene 02 (0.22 to 0.45)
   const localProgress = Math.min(1, Math.max(0, (progress - 0.22) / 0.23));
 
-  // Selected landmark hotspot (Interaction I018)
+  // Selected landmark hotspot
   const [selectedHotspot, setSelectedHotspot] = useState<string | null>(null);
+  const [isHoveringTrail, setIsHoveringTrail] = useState(false);
 
   if (!active && (progress < 0.20 || progress > 0.48)) {
     return null;
   }
 
   // Phase choreography:
-  // Phase 1 (0.00 to 0.40): Paper fold opens from right edge, revealing panorama (I011 & I012)
-  // Phase 2 (0.40 to 0.75): Full panorama immersion, path drawing, and editorial statement (I013 & I017)
-  // Phase 3 (0.75 to 1.00): Path contour contracts and curves into Chapter 03 circular baseline (I020)
-
-  const foldOpenProgress = Math.min(1, Math.max(0, localProgress / 0.45));
-  const statementEnter = Math.min(1, Math.max(0, (localProgress - 0.25) / 0.25));
-  const statementExit = Math.min(1, Math.max(0, (localProgress - 0.70) / 0.20));
+  // Phase 1 (0.00 to 0.45): Paper fold opens from right edge, revealing panorama
+  // Phase 2 (0.45 to 0.78): Full panorama immersion, path drawing, and quiet statement
+  // Phase 3 (0.78 to 1.00): Path contour straightens into Chapter 03 architectural baseline
+  const foldOpenProgress = Math.min(1, Math.max(0, localProgress / 0.42));
+  const statementEnter = Math.min(1, Math.max(0, (localProgress - 0.20) / 0.25));
+  const statementExit = Math.min(1, Math.max(0, (localProgress - 0.75) / 0.20));
   const statementOpacity = statementEnter * (1 - statementExit);
 
-  // Foreground botanical parallax offset (Interaction I013: < 4% viewport)
-  const fgParallaxX = (localProgress - 0.5) * -30; // max ~30px displacement
-  const fgParallaxY = (localProgress - 0.5) * -15;
+  // Foreground botanical parallax offset (< 4% viewport)
+  const fgParallaxX = (localProgress - 0.5) * -24;
+  const fgParallaxY = (localProgress - 0.5) * -12;
 
-  // Handoff to Scene 03 (I020)
-  const handoffProgress = Math.min(1, Math.max(0, (localProgress - 0.75) / 0.25));
+  // Handoff to Scene 03: the red earth path line straightens into Chapter 03's baseline
+  const handoffProgress = Math.min(1, Math.max(0, (localProgress - 0.80) / 0.20));
 
   return (
     <div
-      className="absolute inset-0 w-full h-full overflow-hidden select-none"
+      className="absolute inset-0 w-full h-full overflow-hidden select-none bg-paper"
       style={{
         zIndex: 15,
         visibility: progress >= 0.20 && progress <= 0.48 ? "visible" : "hidden",
       }}
     >
-      {/* BACKGROUND WARM PAPER */}
-      <div className="absolute inset-0 bg-paper paper-texture" />
+      {/* 21ST MCP LIVING CONTOUR FIELD (Topographic Drafting Contours) */}
+      <LivingContourField
+        variant="landscape-topography"
+        active={active}
+        scrollProgress={localProgress}
+        density={0.65}
+      />
 
-      {/* PAPER FOLD MECHANISM (Interactions I011 & I015) */}
+      {/* PAPER FOLD MECHANISM */}
       <PaperFold scrollProgress={foldOpenProgress} className="w-full h-full">
-        {/* THE HIGH-RESOLUTION ILLUSTRATED PANORAMA (Interaction I012) */}
-        <div className="relative w-full h-full overflow-hidden">
+        {/* THE HIGH-RESOLUTION ILLUSTRATED PANORAMA */}
+        <div
+          className="relative w-full h-full overflow-hidden"
+          onPointerMove={(e) => {
+            // Check if cursor is over the lower-third / trail region
+            const relativeY = e.clientY / window.innerHeight;
+            setIsHoveringTrail(relativeY > 0.45 && relativeY < 0.85);
+          }}
+          onPointerLeave={() => setIsHoveringTrail(false)}
+        >
           {/* Master 16:9 Landscape Illustration (Desktop) */}
           <div
             className="hidden sm:block absolute inset-0 w-full h-full transition-transform duration-100 ease-out"
             style={{
-              transform: `scale(${1.04 - localProgress * 0.04})`,
+              transform: `scale(${1.03 - localProgress * 0.03})`,
             }}
           >
             <Image
@@ -88,11 +102,11 @@ export default function Chapter02PageOpens({
             />
           </div>
 
-          {/* FOREGROUND BOTANICAL PARALLAX LAYER (Interaction I013) */}
+          {/* FOREGROUND BOTANICAL PARALLAX LAYER */}
           <div
             className="hidden md:block absolute inset-0 w-full h-full pointer-events-none transition-transform duration-75 ease-out"
             style={{
-              transform: `translate(${fgParallaxX}px, ${fgParallaxY}px) scale(1.03)`,
+              transform: `translate(${fgParallaxX}px, ${fgParallaxY}px) scale(1.02)`,
               opacity: 0.95,
             }}
           >
@@ -107,41 +121,55 @@ export default function Chapter02PageOpens({
             />
           </div>
 
-          {/* RED EARTH PATH CONTOUR (Interaction I017 & I020) */}
-          <div className="absolute inset-0 w-full h-full pointer-events-none">
+          {/* RED EARTH PATH CONTOUR & INTERACTIVE HATCHING RESPONSE */}
+          <div
+            className={`absolute inset-0 w-full h-full pointer-events-none transition-opacity duration-300 ${
+              isHoveringTrail ? "opacity-100" : "opacity-85"
+            }`}
+          >
             <StoryPath
-              progress={Math.min(1, Math.max(0, (localProgress - 0.25) / 0.55))}
+              progress={Math.min(1, Math.max(0, (localProgress - 0.20) / 0.60))}
               variant="terrain-trail"
             />
           </div>
 
-          {/* INTERACTIVE LANDMARK HOTSPOTS (Interaction I018) */}
+          {/* SUBTLE ILLUSTRATED LANDMARK DISCOVERY POINTS (Zero generic button circles) */}
           <div className="absolute inset-0 pointer-events-auto">
-            {/* Hotspot 01: Matrimandir Dome */}
+            {/* Landmark 01: Matrimandir Dome (Accessible, organic marker) */}
             <button
               onClick={() => setSelectedHotspot("dome")}
               aria-label="Inspect Matrimandir Sphere Landmark"
-              className="absolute top-[28%] right-[28%] md:right-[32%] w-9 h-9 rounded-full bg-paper/85 border border-terracotta text-terracotta flex items-center justify-center font-mono text-[10px] shadow-md hover:scale-110 transition-transform duration-200"
+              className="group absolute top-[28%] right-[29%] md:right-[33%] p-2 rounded-full text-terracotta hover:scale-105 transition-all duration-200 focus:outline-none"
             >
-              <Info size={14} />
+              <div className="w-6 h-6 rounded-full border border-terracotta/80 bg-paper/80 backdrop-blur-xs flex items-center justify-center shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-terracotta group-hover:scale-150 transition-transform" />
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute left-1/2 -translate-x-1/2 -bottom-6 px-2 py-0.5 bg-paper/95 border border-border text-[9px] font-mono uppercase tracking-widest text-ink whitespace-nowrap shadow-xs">
+                The Geodesic Sphere
+              </span>
             </button>
 
-            {/* Hotspot 02: Red Earth Trail */}
+            {/* Landmark 02: Red Earth Trail (Accessible, organic marker) */}
             <button
               onClick={() => setSelectedHotspot("trail")}
               aria-label="Inspect Red Laterite Trail"
-              className="absolute bottom-[26%] left-[22%] md:left-[26%] w-8 h-8 rounded-full bg-paper/85 border border-forest text-forest flex items-center justify-center font-mono text-[10px] shadow-md hover:scale-110 transition-transform duration-200"
+              className="group absolute bottom-[27%] left-[23%] md:left-[27%] p-2 rounded-full text-forest hover:scale-105 transition-all duration-200 focus:outline-none"
             >
-              <Info size={12} />
+              <div className="w-6 h-6 rounded-full border border-forest/80 bg-paper/80 backdrop-blur-xs flex items-center justify-center shadow-xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-forest group-hover:scale-150 transition-transform" />
+              </div>
+              <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 absolute left-1/2 -translate-x-1/2 -bottom-6 px-2 py-0.5 bg-paper/95 border border-border text-[9px] font-mono uppercase tracking-widest text-ink whitespace-nowrap shadow-xs">
+                The Laterite Trail
+              </span>
             </button>
           </div>
 
-          {/* HOTSPOT POPUP INSET (Interaction I018) */}
+          {/* HOTSPOT POPUP INSET (Compact, restrained archival card) */}
           {selectedHotspot && (
             <div
               role="dialog"
               aria-modal="true"
-              className="absolute z-40 top-24 right-6 md:right-16 max-w-sm bg-paper border border-border archival-shadow p-5 animate-fade-in"
+              className="absolute z-40 top-20 right-6 md:right-14 max-w-xs bg-paper-light border border-border archival-shadow p-5 animate-fade-in"
             >
               <div className="flex items-center justify-between pb-2 border-b border-border">
                 <span className="font-mono text-[9px] uppercase tracking-widest text-terracotta font-semibold">
@@ -165,45 +193,28 @@ export default function Chapter02PageOpens({
               </h4>
               <p className="font-sans text-xs text-ink-muted mt-1 leading-relaxed font-light">
                 {selectedHotspot === "dome"
-                  ? "Crowned with 1,415 hand-gilded concave discs, set within twelve radial gardens and the amphitheater."
-                  : "Hand-planted tropical dry evergreen paths regenerate the once-eroded laterite plateau of southern India."}
+                  ? "Crowned with 1,415 hand-gilded concave discs, cradled within twelve petal gardens."
+                  : "Hand-planted tropical dry evergreen paths regenerate the once-eroded laterite plateau."}
               </p>
             </div>
           )}
 
-          {/* EDITORIAL STATEMENT (Refined, Non-Intrusive Proportions) */}
+          {/* QUIET INTEGRATED EDITORIAL STATEMENT (Archival label, zero blocking boxes) */}
           <div
-            className="absolute z-30 left-6 md:left-14 bottom-14 md:bottom-20 max-w-lg p-5 md:p-6 bg-paper/75 backdrop-blur-sm border-l-2 border-terracotta archival-shadow-subtle transition-all duration-100 ease-out pointer-events-none"
+            className="absolute z-20 left-8 md:left-14 bottom-8 md:bottom-10 max-w-lg pointer-events-none transition-opacity duration-300"
             style={{
               opacity: statementOpacity,
-              transform: `translateY(${(1 - statementEnter) * 20}px)`,
+              transform: `translateY(${(1 - statementEnter) * 15}px)`,
             }}
           >
-            <div className="flex items-center gap-3 mb-1.5 font-mono text-[9px] md:text-[10px] uppercase tracking-widest text-terracotta font-semibold">
-              <span>CHAPTER 02 / THE PAGE OPENS</span>
-              <span className="w-5 h-[1px] bg-terracotta/50" />
-              <span className="text-ink-muted">DRAWING INTO REALITY</span>
+            <div className="bg-paper-light/92 backdrop-blur-sm px-4 py-2.5 border border-border/70 rounded-xs archival-shadow-subtle inline-block">
+              <p className="font-serif italic text-base md:text-lg text-ink font-light leading-snug">
+                Red laterite paths cut through three million hand-planted trees, leading to the golden sphere.
+              </p>
             </div>
-
-            <h2 className="font-serif italic text-2xl sm:text-3xl md:text-4xl text-ink font-light tracking-tight leading-tight">
-              From a single mark,
-            </h2>
-            <h3 className="font-display text-xl sm:text-2xl md:text-3xl text-terracotta tracking-tight mt-0.5">
-              AN ILLUSTRATED WORLD.
-            </h3>
-
-            <p className="mt-2.5 font-sans text-xs text-ink-muted leading-relaxed font-light">
-              Red laterite earth paths cut through millions of indigenous trees hand-planted to
-              regenerate the plateau, culminating in the golden sphere of central Auroville.
-            </p>
           </div>
 
-          {/* ARCHIVAL CORNER STAMP & CAPTION */}
-          <div className="absolute top-20 left-6 md:left-12 z-20 pointer-events-none font-mono text-[9px] uppercase tracking-widest text-ink-muted hidden sm:block">
-            <span>PLATE 02 · PANORAMA OF THE RED EARTH</span>
-          </div>
-
-          {/* HANDOFF OVERLAY TO CHAPTER 03 (Interaction I020) */}
+          {/* HANDOFF TO CHAPTER 03: Horizon line continues directly into architecture */}
           {handoffProgress > 0 && (
             <div
               className="absolute inset-0 bg-paper transition-opacity duration-300 pointer-events-none"

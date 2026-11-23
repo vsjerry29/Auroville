@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import LayerComparison from "@/components/interactions/LayerComparison";
-import { Info, X, SlidersHorizontal } from "lucide-react";
+import LivingContourField from "@/components/experience/LivingContourField";
+import { SlidersHorizontal, Eye, Compass, Sparkles } from "lucide-react";
 
 interface Chapter03GoldenStructureProps {
   progress: number; // Global scroll progress 0.0 - 1.0
@@ -14,404 +15,333 @@ export default function Chapter03GoldenStructure({
   progress,
   active,
 }: Chapter03GoldenStructureProps) {
-  // Normalize progress for Chapter 03 (0.45 to 0.73)
-  const localProgress = Math.min(1, Math.max(0, (progress - 0.45) / 0.28));
+  // Normalize progress for Chapter 03 (0.42 to 0.75)
+  const localProgress = Math.min(1, Math.max(0, (progress - 0.42) / 0.33));
 
-  // Active callout specification modal
-  const [activeCallout, setActiveCallout] = useState<string | null>(null);
-  // Toggle for comparison slider in Frame C
+  // Interactive modes
+  const [outlineMode, setOutlineMode] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [activeCallout, setActiveCallout] = useState<string | null>(null);
 
+  // Close modals/callouts on ESC
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && activeCallout) {
+      if (e.key === "Escape") {
         setActiveCallout(null);
+        setShowComparison(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeCallout]);
+  }, []);
 
-  if (!active && (progress < 0.42 || progress > 0.76)) {
+  if (!active && (progress < 0.40 || progress > 0.77)) {
     return null;
   }
 
-  // 3-Part Editorial Horizontal Movement:
-  // State A: 0.00 – 0.35 (01/ — An Idea Takes Shape: right-dominant architectural elevation)
-  // Shift A->B: 0.35 – 0.50 (Lateral transition: art moves left, making scene enters)
-  // State B: 0.50 – 0.70 (02/ — Built by Many Hands: left-dominant workshop scene)
-  // Shift B->C: 0.70 – 0.85 (Lateral transition: macro disc study enters on right)
-  // State C: 0.85 – 0.94 (03/ — A Thousand Small Decisions: macro geodesic discs)
-  // Handoff to CH04: 0.94 – 1.00 (Contour line stretches into suspension cord)
+  // ---------------------------------------------------------------------------
+  // SCROLL CHOREOGRAPHY (Continuous Evolving Drawing)
+  // State 1 (Unbuilt Geometry): localProgress < 0.38
+  // State 2 (Built by Hands):   localProgress >= 0.38 && localProgress < 0.70
+  // State 3 (Golden Detail):    localProgress >= 0.70
+  // Continuous Handoff to CH04: localProgress >= 0.88
+  // ---------------------------------------------------------------------------
 
-  // Sub-progress for transitions
-  const transitionAB = Math.min(1, Math.max(0, (localProgress - 0.33) / 0.20));
-  const transitionBC = Math.min(1, Math.max(0, (localProgress - 0.68) / 0.18));
-  const handoffCH04 = Math.min(1, Math.max(0, (localProgress - 0.92) / 0.08));
+  const activePhase = localProgress < 0.38 ? 1 : localProgress < 0.70 ? 2 : 3;
 
-  // State opacities and lateral translations
-  // Track 1 (State A): starts at 0, translates left as B enters
-  const track1TranslateX = transitionAB * -110;
-  const track1Opacity = Math.max(0, 1 - transitionAB * 1.5);
+  // Visual Drawing Weights (for smooth artwork cross-dissolve)
+  const p1Weight = Math.max(0, 1 - Math.min(1, Math.max(0, (localProgress - 0.30) / 0.12)));
+  const p2Enter = Math.min(1, Math.max(0, (localProgress - 0.30) / 0.12));
+  const p2Exit = Math.min(1, Math.max(0, (localProgress - 0.66) / 0.10));
+  const p2Weight = p2Enter * (1 - p2Exit);
+  const p3Weight = Math.min(1, Math.max(0, (localProgress - 0.66) / 0.10));
 
-  // Track 2 (State B): enters from right (110vw -> 0vw), then leaves left (0vw -> -110vw)
-  const track2TranslateX = (1 - transitionAB) * 100 - transitionBC * 110;
-  const track2Opacity = transitionAB > 0.1 ? Math.min(1, transitionAB * 1.5) * (1 - transitionBC * 1.5) : 0;
-
-  // Track 3 (State C): enters from right (100vw -> 0vw)
-  const track3TranslateX = (1 - transitionBC) * 100 - handoffCH04 * 25;
-  const track3Opacity = Math.min(1, transitionBC * 1.5);
-
-  // Current active sub-state number for eyebrow
-  const currentSubState = localProgress < 0.45 ? "01" : localProgress < 0.78 ? "02" : "03";
+  // Continuous handoff to Chapter 04
+  const handoffCH04 = Math.min(1, Math.max(0, (localProgress - 0.88) / 0.12));
 
   return (
     <div
-      className="absolute inset-0 w-full h-full overflow-hidden select-none"
+      className="absolute inset-0 w-full h-full overflow-hidden select-none bg-paper text-ink transition-opacity duration-300"
       style={{
         zIndex: 20,
-        visibility: progress >= 0.42 && progress <= 0.76 ? "visible" : "hidden",
+        visibility: progress >= 0.40 && progress <= 0.77 ? "visible" : "hidden",
+        pointerEvents: progress >= 0.42 && progress <= 0.75 ? "auto" : "none",
+        opacity:
+          Math.min(1, Math.max(0, (progress - 0.40) / 0.02)) *
+          Math.min(1, Math.max(0, (0.77 - progress) / 0.02)),
       }}
     >
-      {/* Background warm archival parchment */}
-      <div className="absolute inset-0 bg-paper paper-texture" />
-
-      {/* TOP BAR / CHAPTER INDEX */}
-      <div className="absolute top-20 md:top-24 left-6 md:left-12 right-6 md:right-12 z-30 flex items-end justify-between border-b border-border pb-3 pointer-events-none">
-        <div className="flex items-baseline gap-4 md:gap-6">
-          <span className="font-display text-4xl md:text-5xl text-terracotta leading-none">
-            03
-          </span>
-          <div>
-            <div className="flex items-center gap-2 text-ink-muted text-[10px] font-mono uppercase tracking-widest">
-              <span className="w-1.5 h-1.5 rounded-full bg-forest inline-block" />
-              <span>THE ARCHITECTURAL STORY · MOVEMENT {currentSubState}/03</span>
-            </div>
-            <h2 className="font-serif italic text-2xl md:text-3xl text-ink font-light tracking-tight mt-0.5">
-              The Golden Structure
-            </h2>
-          </div>
-        </div>
-
-        <div className="text-right font-mono text-[9px] md:text-[10px] text-ink-muted uppercase tracking-widest hidden sm:block">
-          <span>EDITORIAL CHOREOGRAPHY · </span>
-          <span className="text-terracotta font-semibold">
-            {localProgress < 0.45 ? "FORM" : localProgress < 0.78 ? "MAKING" : "SURFACE DETAIL"}
-          </span>
-        </div>
-      </div>
+      {/* Interactive Architectural Drafting Background Field */}
+      <LivingContourField
+        variant="structure-elevation"
+        scrollProgress={localProgress}
+        opacity={0.35}
+      />
 
       {/* =========================================================================
-          HORIZONTAL EDITORIAL TRACK (Driven by Vertical Scroll)
+          CONTINUOUS EVOLVING DRAWING ENVIRONMENT (Single Unified Stage)
           ========================================================================= */}
-      <div className="relative w-full h-full pt-32 md:pt-36 pb-12 overflow-hidden flex items-center">
-
+      <div className="relative w-full h-full pt-24 md:pt-28 pb-10 px-6 md:px-12 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+        
         {/* -----------------------------------------------------------------------
-            STATE A: 01/ — AN IDEA TAKES SHAPE (Right-dominant elevation study)
+            LEFT COLUMN: Editorial Storytelling & Direct Exploration Controls
             ----------------------------------------------------------------------- */}
-        <div
-          className="absolute inset-x-0 w-full max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center transition-transform duration-75 ease-out"
-          style={{
-            transform: `translateX(${track1TranslateX}vw)`,
-            opacity: track1Opacity,
-            pointerEvents: localProgress < 0.45 ? "auto" : "none",
-          }}
-        >
-          {/* Left Column: Number, Editorial Copy, and 2 Supporting Studies */}
-          <div className="lg:col-span-5 flex flex-col justify-between h-full max-h-[580px]">
-            <div>
-              <div className="flex items-baseline gap-4">
-                <span className="font-display text-4xl md:text-5xl text-ink">01/</span>
-                <h3 className="font-serif italic text-2xl md:text-3xl text-ink font-light leading-tight">
+        <div className="lg:col-span-5 flex flex-col justify-between h-auto lg:h-[500px] z-20">
+          <div>
+            {/* Clean Section Identifier */}
+            <div className="flex items-center gap-2.5 text-terracotta text-[10px] font-mono uppercase tracking-widest pb-3 border-b border-border/70 mb-5 font-semibold">
+              <span>CHAPTER 03</span>
+              <span className="text-border">·</span>
+              <span className="text-ink-muted">
+                {activePhase === 1
+                  ? "STATE 1 OF 3 · UNBUILT GEOMETRY"
+                  : activePhase === 2
+                  ? "STATE 2 OF 3 · BUILT BY HANDS"
+                  : "STATE 3 OF 3 · GILDED SURFACE"}
+              </span>
+            </div>
+
+            {/* Phase 1 Narrative: An Idea Takes Shape */}
+            {activePhase === 1 && (
+              <div className="animate-fade-in">
+                <h3 className="font-serif italic text-2xl md:text-3xl lg:text-4xl text-ink font-light leading-tight">
                   An idea takes shape.
                 </h3>
-              </div>
-              <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
-                A vision conceived on an eroded red plateau in southern India: architecture not as a
-                monument of power, but as an inquiry into human unity, geometric proportion, and quietude.
-              </p>
-            </div>
-
-            {/* Two Asymmetrical Supporting Studies */}
-            <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border">
-              {/* Supporting Study 1: Radial Planning Study */}
-              <div className="bg-paper-light border border-border p-2 archival-shadow-subtle">
-                <div className="relative w-full aspect-[4/3] bg-paper-dark overflow-hidden">
-                  <Image
-                    src="/art/architecture/galaxy-plan.webp"
-                    alt="Radial concept sketch"
-                    fill
-                    sizes="200px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="pt-1.5 font-mono text-[8px] uppercase tracking-wider text-ink-muted">
-                  RADIAL SECTORS
+                <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
+                  A vision conceived on an eroded red plateau in southern India: architecture not as a
+                  monument of domination, but as an inquiry into human unity, sacred geometry, and quietude.
+                </p>
+                
+                <div className="mt-6 pt-4 border-t border-border/80 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setOutlineMode(!outlineMode)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-paper-light border border-border hover:border-terracotta text-ink font-mono text-[9.5px] uppercase tracking-wider transition-colors archival-shadow-subtle rounded-xs cursor-pointer"
+                  >
+                    <Eye size={12} className="text-terracotta" />
+                    <span>{outlineMode ? "VIEW TONED ELEVATION" : "PEEL TO GRAPHITE OUTLINE"}</span>
+                  </button>
+                  <span className="text-[10px] font-mono text-ink-muted">36M GEODESIC SPHERE</span>
                 </div>
               </div>
+            )}
 
-              {/* Supporting Study 2: Terracotta Material Study */}
-              <div className="bg-paper-light border border-border p-2 archival-shadow-subtle">
-                <div className="relative w-full aspect-[4/3] bg-paper-dark overflow-hidden">
-                  <Image
-                    src="/art/people/potter.webp"
-                    alt="Artisan shaping clay"
-                    fill
-                    sizes="200px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="pt-1.5 font-mono text-[8px] uppercase tracking-wider text-ink-muted">
-                  EARTH MATERIALITY
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Dominant Matrimandir Architectural Elevation (~55% width) */}
-          <div className="lg:col-span-7 relative bg-paper-light border border-border p-3 md:p-4 archival-shadow">
-            <div className="relative w-full aspect-[16/10] overflow-hidden bg-paper">
-              <Image
-                src="/illustrated/ch03-structure/matrimandir-shaded.webp"
-                alt="Detailed hand-drawn architectural structural elevation of Matrimandir"
-                fill
-                sizes="(max-width: 1024px) 100vw, 58vw"
-                className="object-contain"
-                priority
-              />
-            </div>
-            <div className="pt-2 flex items-center justify-between font-mono text-[9px] md:text-[10px] text-ink-muted uppercase tracking-wider">
-              <span className="text-ink font-medium">STRUCTURAL ELEVATION STUDY</span>
-              <span className="text-terracotta">PEACE AREA · 36M GEODESIC SPHERE</span>
-            </div>
-          </div>
-        </div>
-
-        {/* -----------------------------------------------------------------------
-            STATE B: 02/ — BUILT BY MANY HANDS (Left-dominant assembly scene)
-            ----------------------------------------------------------------------- */}
-        <div
-          className="absolute inset-x-0 w-full max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center transition-transform duration-75 ease-out"
-          style={{
-            transform: `translateX(${track2TranslateX}vw)`,
-            opacity: track2Opacity,
-            pointerEvents: localProgress >= 0.45 && localProgress < 0.78 ? "auto" : "none",
-          }}
-        >
-          {/* Left Column: Dominant Illustration of Artisans, Builders & Blueprints */}
-          <div className="lg:col-span-7 relative bg-paper-light border border-border p-3 md:p-4 archival-shadow order-2 lg:order-1">
-            <div className="relative w-full aspect-[16/10] overflow-hidden bg-paper">
-              <Image
-                src="/illustrated/ch03-structure/ch03-frame-b-making.webp"
-                alt="Artisans and architects drafting blueprints and assembling models in Auroville workshop"
-                fill
-                sizes="(max-width: 1024px) 100vw, 58vw"
-                className="object-cover"
-                priority
-              />
-            </div>
-            <div className="pt-2 flex items-center justify-between font-mono text-[9px] md:text-[10px] text-ink-muted uppercase tracking-wider">
-              <span className="text-ink font-medium">THE ARCHITECTURAL WORKSHOP</span>
-              <span className="text-forest">HANDS & PHYSICAL MATERIAL</span>
-            </div>
-          </div>
-
-          {/* Right Column: Number, Editorial Copy, and Material Fragment Studies */}
-          <div className="lg:col-span-5 flex flex-col justify-between h-full max-h-[580px] order-1 lg:order-2">
-            <div>
-              <div className="flex items-baseline gap-4">
-                <span className="font-display text-4xl md:text-5xl text-terracotta">02/</span>
-                <h3 className="font-serif italic text-2xl md:text-3xl text-ink font-light leading-tight">
+            {/* Phase 2 Narrative: Built by Many Hands */}
+            {activePhase === 2 && (
+              <div className="animate-fade-in">
+                <h3 className="font-serif italic text-2xl md:text-3xl lg:text-4xl text-ink font-light leading-tight">
                   Built by many hands.
                 </h3>
-              </div>
-              <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
-                Before heavy machinery arrived, youth from dozens of nations hand-dug the foundation,
-                hand-sifted laterite sand, and laid each brick. Architecture here became an act of
-                collective human making.
-              </p>
-            </div>
+                <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
+                  Before heavy machinery arrived, youth from dozens of nations hand-dug the foundation,
+                  hand-sifted laterite sand, and assembled timber armatures. Architecture became an act of
+                  collective human making.
+                </p>
 
-            {/* Supporting Botanical & Architectural Fragment Studies */}
-            <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border">
-              <div className="bg-paper-light border border-border p-2 archival-shadow-subtle">
-                <div className="relative w-full aspect-[4/3] bg-paper-dark overflow-hidden">
-                  <Image
-                    src="/art/people/architect.webp"
-                    alt="Architect drafting blueprint"
-                    fill
-                    sizes="200px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="pt-1.5 font-mono text-[8px] uppercase tracking-wider text-ink-muted">
-                  BLUEPRINT STUDY
+                <div className="mt-6 pt-4 border-t border-border/80 flex items-center gap-4">
+                  <button
+                    onClick={() =>
+                      setActiveCallout(
+                        activeCallout === "workshop"
+                          ? null
+                          : "Hand-assembled scaffolding and timber formwork constructed on site (1971–1977)."
+                      )
+                    }
+                    className="flex items-center gap-1.5 text-ink hover:text-terracotta font-mono text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
+                  >
+                    <Compass size={12} className="text-forest" />
+                    <span>{activeCallout ? "CLOSE ANNOTATION" : "INSPECT FORMWORK"}</span>
+                  </button>
+                  <span className="text-border">·</span>
+                  <span className="font-mono text-[10px] text-ink-muted uppercase">
+                    PEACE AREA WORKSHOP
+                  </span>
                 </div>
               </div>
+            )}
 
-              <div className="bg-paper-light border border-border p-2 archival-shadow-subtle">
-                <div className="relative w-full aspect-[4/3] bg-paper-dark overflow-hidden">
-                  <Image
-                    src="/art/details/leaf-rosette.webp"
-                    alt="Botanical specimen"
-                    fill
-                    sizes="200px"
-                    className="object-cover"
-                  />
-                </div>
-                <div className="pt-1.5 font-mono text-[8px] uppercase tracking-wider text-ink-muted">
-                  INDIGENOUS FOLIAGE
+            {/* Phase 3 Narrative: A Thousand Small Decisions */}
+            {activePhase === 3 && (
+              <div className="animate-fade-in">
+                <h3 className="font-serif italic text-2xl md:text-3xl lg:text-4xl text-ink font-light leading-tight">
+                  A thousand small decisions.
+                </h3>
+                <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
+                  1,415 convex and concave discs sheathe the geodesic frame, deflecting monsoonal wind
+                  shear and diffusing the southern Indian sun into interior quietude.
+                </p>
+
+                <div className="mt-6 pt-4 border-t border-border/80 flex flex-col gap-2.5">
+                  <button
+                    onClick={() => setShowComparison(!showComparison)}
+                    className="flex items-center justify-between px-3.5 py-2 bg-paper-light border border-border hover:border-gold text-ink font-mono text-[10px] uppercase tracking-wider transition-colors archival-shadow-subtle rounded-xs cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <SlidersHorizontal size={13} className="text-gold" />
+                      <span>{showComparison ? "RETURN TO MACRO DETAIL" : "COMPARE OUTLINE VS GOLD"}</span>
+                    </div>
+                    <span className="text-gold font-semibold">↔</span>
+                  </button>
+                  <div className="flex items-center gap-2 font-mono text-[9.5px] text-ink-muted">
+                    <Sparkles size={11} className="text-gold" />
+                    <span>28-KARAT GOLD LEAF MOSAIC TILES</span>
+                  </div>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Contextual Inline Annotation Card (Not an intrusive pop-up) */}
+          {activeCallout && (
+            <div className="mt-4 p-3.5 bg-paper-light border border-border archival-shadow-subtle text-xs text-ink-muted font-sans font-light animate-fade-in flex items-start justify-between gap-3">
+              <p>{activeCallout}</p>
+              <button
+                onClick={() => setActiveCallout(null)}
+                className="text-ink hover:text-terracotta text-sm leading-none font-mono"
+              >
+                ×
+              </button>
             </div>
+          )}
+
+          {/* Bottom Architectural Spec Line */}
+          <div className="hidden lg:flex items-center justify-between pt-4 border-t border-border/60 font-mono text-[9px] uppercase tracking-widest text-ink-muted">
+            <span>AXIS: 11° 59′ N, 79° 49′ E</span>
+            <span className="text-terracotta">SPHERICAL RADIUS: 18 METERS</span>
           </div>
         </div>
 
         {/* -----------------------------------------------------------------------
-            STATE C: 03/ — A THOUSAND SMALL DECISIONS (Macro Geodesic Discs)
+            RIGHT COLUMN: The Continuous Evolving Architectural Drawing
+            (One monumental artwork, evolving in place across scroll states)
             ----------------------------------------------------------------------- */}
-        <div
-          className="absolute inset-x-0 w-full max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center transition-transform duration-75 ease-out"
-          style={{
-            transform: `translateX(${track3TranslateX}vw)`,
-            opacity: track3Opacity,
-            pointerEvents: localProgress >= 0.78 ? "auto" : "none",
-          }}
-        >
-          {/* Left Column: Number, Editorial Copy, and Comparison Toggle */}
-          <div className="lg:col-span-5 flex flex-col justify-between h-full max-h-[580px]">
-            <div>
-              <div className="flex items-baseline gap-4">
-                <span className="font-display text-4xl md:text-5xl text-gold">03/</span>
-                <h3 className="font-serif italic text-2xl md:text-3xl text-ink font-light leading-tight">
-                  A thousand small decisions.
-                </h3>
-              </div>
-              <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
-                1,415 convex and concave discs surfaced with 28-karat gold leaf mosaic tiles sheathe
-                the geodesic frame, deflecting monsoonal wind shear and diffusing the southern Indian sun.
-              </p>
-            </div>
-
-            {/* Interactive Actions & Specifications */}
-            <div className="mt-6 pt-4 border-t border-border flex flex-col gap-3">
-              <button
-                onClick={() => setShowComparison(!showComparison)}
-                className="flex items-center justify-between px-3.5 py-2.5 bg-paper-light border border-border hover:border-terracotta text-ink font-mono text-[10px] uppercase tracking-wider transition-colors shadow-sm"
-              >
-                <div className="flex items-center gap-2">
-                  <SlidersHorizontal size={14} className="text-terracotta" />
-                  <span>{showComparison ? "CLOSE COMPARISON SLIDER" : "COMPARE OUTLINE VS GOLD DISCS"}</span>
-                </div>
-                <span className="text-terracotta">↔</span>
-              </button>
-
-              <div className="flex items-center gap-3 font-mono text-[10px] text-ink-muted">
-                <button
-                  onClick={() => setActiveCallout("discs")}
-                  className="flex items-center gap-1.5 hover:text-terracotta transition-colors"
-                >
-                  <Info size={12} className="text-terracotta" />
-                  <span>1,415 GILDED DISCS</span>
-                </button>
-                <span className="text-border">·</span>
-                <button
-                  onClick={() => setActiveCallout("ramps")}
-                  className="flex items-center gap-1.5 hover:text-forest transition-colors"
-                >
-                  <Info size={12} className="text-forest" />
-                  <span>RADIAL RAMPS</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Dominant Macro Geodesic Discs Illustration OR Comparison Slider */}
-          <div className="lg:col-span-7 relative bg-paper-light border border-border p-3 md:p-4 archival-shadow">
-            {showComparison ? (
+        <div className="lg:col-span-7 relative w-full aspect-[4/3] md:aspect-[16/11] bg-paper-light border border-border archival-shadow overflow-hidden rounded-xs">
+          
+          {/* Comparison Slider Mode in Phase 3 */}
+          {showComparison && p3Weight > 0.4 ? (
+            <div className="absolute inset-0 w-full h-full z-30 animate-fade-in">
               <LayerComparison
                 outlineSrc="/illustrated/ch03-structure/matrimandir-outline.webp"
                 shadedSrc="/illustrated/ch03-structure/matrimandir-shaded.webp"
                 outlineAlt="Graphite line study of Matrimandir elevation"
                 shadedAlt="Toned graphite and gold leaf shaded study of Matrimandir"
-                className="rounded-xs"
+                className="w-full h-full border-none shadow-none"
               />
-            ) : (
-              <div className="relative w-full aspect-[16/10] overflow-hidden bg-paper">
-                <Image
-                  src="/illustrated/ch03-structure/ch03-frame-c-macro.webp"
-                  alt="Macro architectural drawing of Matrimandir geodesic discs and gold mosaic tiles"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 58vw"
-                  className="object-contain"
-                  priority
-                />
-              </div>
-            )}
-            <div className="pt-2 flex items-center justify-between font-mono text-[9px] md:text-[10px] text-ink-muted uppercase tracking-wider">
-              <span className="text-ink font-medium">GEODESIC SURFACE GEOMETRY</span>
-              <span className="text-gold font-semibold">28-KARAT GOLD LEAF MOSAIC</span>
+            </div>
+          ) : null}
+
+          {/* Layer 1: Structural Elevation Study (Outline vs Shaded) */}
+          <div
+            className="absolute inset-0 w-full h-full transition-opacity duration-400"
+            style={{
+              opacity: p1Weight,
+              pointerEvents: p1Weight > 0.2 ? "auto" : "none",
+            }}
+          >
+            <Image
+              src={
+                outlineMode
+                  ? "/illustrated/ch03-structure/matrimandir-outline.webp"
+                  : "/illustrated/ch03-structure/matrimandir-shaded.webp"
+              }
+              alt="Structural elevation drawing of the Matrimandir"
+              fill
+              sizes="(max-width: 1024px) 100vw, 58vw"
+              className="object-contain p-2 md:p-4"
+              priority
+            />
+            <div className="absolute bottom-2.5 right-3 font-mono text-[8px] uppercase tracking-widest text-ink-muted/70 bg-paper-light/80 px-2 py-0.5 border border-border/50">
+              {outlineMode ? "GRAPHITE ELEVATION OUTLINE" : "TONED STRUCTURAL STUDY"}
             </div>
           </div>
+
+          {/* Layer 2: Workshop of Hands (Artisans and Timber Armature) */}
+          <div
+            className="absolute inset-0 w-full h-full transition-opacity duration-400"
+            style={{
+              opacity: p2Weight,
+              pointerEvents: p2Weight > 0.2 ? "auto" : "none",
+            }}
+          >
+            <Image
+              src="/illustrated/ch03-structure/ch03-frame-b-making.webp"
+              alt="Artisans and architects assembling the Matrimandir structure in Auroville workshop"
+              fill
+              sizes="(max-width: 1024px) 100vw, 58vw"
+              className="object-cover"
+              priority
+            />
+            <div className="absolute bottom-2.5 right-3 font-mono text-[8px] uppercase tracking-widest text-ink-muted/70 bg-paper-light/80 px-2 py-0.5 border border-border/50">
+              WORKSHOP & TIMBER FORMWORK
+            </div>
+          </div>
+
+          {/* Layer 3: Macro Geodesic Discs Detail */}
+          <div
+            className="absolute inset-0 w-full h-full transition-opacity duration-400"
+            style={{
+              opacity: p3Weight,
+              pointerEvents: p3Weight > 0.2 ? "auto" : "none",
+            }}
+          >
+            <Image
+              src="/illustrated/ch03-structure/ch03-frame-c-macro.webp"
+              alt="Macro drawing of Matrimandir geodesic discs and gold leaf mosaic tiles"
+              fill
+              sizes="(max-width: 1024px) 100vw, 58vw"
+              className="object-cover"
+              priority
+            />
+            <div className="absolute bottom-2.5 right-3 font-mono text-[8px] uppercase tracking-widest text-gold/90 bg-paper-light/80 px-2 py-0.5 border border-border/50 font-medium">
+              1,415 GILDED GEODESIC DISCS
+            </div>
+          </div>
+
+          {/* Fine Drafting Compass & Axis Overlays */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-30">
+            <line
+              x1="50%"
+              y1="0"
+              x2="50%"
+              y2="100%"
+              stroke="#5B5751"
+              strokeWidth="0.75"
+              strokeDasharray="4 4"
+            />
+            <line
+              x1="0"
+              y1="82%"
+              x2="100%"
+              y2="82%"
+              stroke="#5B5751"
+              strokeWidth="0.75"
+            />
+          </svg>
         </div>
       </div>
 
-      {/* CONTINUOUS HANDOFF LINE TO CH04 (Section C: Architectural Arc -> Suspension Cord) */}
+      {/* =========================================================================
+          CONTINUOUS HANDOFF TO CH04: Architectural Arc unrolls into Suspension Cord
+          ========================================================================= */}
       <div
-        className="absolute bottom-6 left-0 right-0 z-30 pointer-events-none transition-opacity duration-300"
+        className="absolute bottom-0 inset-x-0 w-full h-24 pointer-events-none z-30 transition-opacity duration-500"
         style={{
           opacity: handoffCH04,
         }}
       >
-        <svg viewBox="0 0 1000 30" fill="none" className="w-full h-6">
+        <svg
+          viewBox="0 0 1440 96"
+          fill="none"
+          className="w-full h-full"
+          preserveAspectRatio="none"
+        >
           <path
-            d="M 0 15 Q 500 28, 1000 15"
-            stroke="#5B5751"
-            strokeWidth="1.5"
+            d="M -40 20 Q 720 70, 1480 25"
+            stroke="#4A453E"
+            strokeWidth="2.2"
             strokeLinecap="round"
           />
         </svg>
       </div>
-
-      {/* STRUCTURAL CALLOUT SPECIFICATION MODAL */}
-      {activeCallout && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-ink/75 backdrop-blur-sm animate-fade-in"
-          onClick={() => setActiveCallout(null)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="max-w-md w-full bg-paper border border-border archival-shadow p-6"
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-border">
-              <span className="font-mono text-[9px] uppercase tracking-widest text-terracotta font-semibold">
-                ARCHITECTURAL SPECIFICATION
-              </span>
-              <button
-                onClick={() => setActiveCallout(null)}
-                aria-label="Close specification"
-                className="p-1 text-ink-muted hover:text-ink"
-              >
-                <X size={14} />
-              </button>
-            </div>
-
-            <h4 className="font-serif italic text-2xl text-ink font-light mt-3">
-              {activeCallout === "discs"
-                ? "1,415 Gilded Geodesic Discs"
-                : "Radial Amphitheater Ramps"}
-            </h4>
-
-            <p className="font-sans text-xs text-ink-muted mt-2 leading-relaxed font-light">
-              {activeCallout === "discs"
-                ? "The outer sphere is clad with 1,415 convex and concave discs surfaced with 28-karat gold leaf mosaic tiles, designed to deflect turbulent monsoonal wind shear while diffusing southern Indian solar irradiance."
-                : "Four radial amphitheater ramps anchored by red sandstone walls cradle the sphere within twelve symbolic petal gardens, forming the tranquil center of the planned township."}
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
