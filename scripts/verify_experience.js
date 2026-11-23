@@ -6,7 +6,7 @@ const screenshotDir = path.join(__dirname, '..', 'docs', 'screenshots');
 fs.mkdirSync(screenshotDir, { recursive: true });
 
 async function runVerification() {
-  console.log('Launching browser for verification...');
+  console.log('Launching browser for V3 verification...');
   const browser = await chromium.launch({ channel: 'msedge' });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
@@ -30,14 +30,14 @@ async function runVerification() {
     const targetY = (step / 100) * maxScroll;
     console.log(`Scrolling to ${step}% (scrollY: ${Math.round(targetY)}px)...`);
     await page.evaluate((y) => window.scrollTo(0, y), targetY);
-    await page.waitForTimeout(400); // Allow GSAP scrub and image decode to settle
+    await page.waitForTimeout(400);
 
     const filename = `desktop-${String(step).padStart(3, '0')}pct-1440x900.png`;
     await page.screenshot({ path: path.join(screenshotDir, filename) });
     console.log(`Captured ${filename}`);
   }
 
-  // 2. Test Reverse Scrolling: from 100% back to 0% in steps
+  // 2. Test Reverse Scrolling: from 100% back to 0%
   console.log('Testing reverse scrolling...');
   for (let step = 90; step >= 0; step -= 30) {
     const targetY = (step / 100) * maxScroll;
@@ -49,53 +49,49 @@ async function runVerification() {
   console.log(`Captured reverse verification: ${reverseScreenshot}`);
 
   // 3. Test Chapter Navigation Overlay
-  console.log('Testing Chapter Navigation...');
+  console.log('Testing Chapter Navigation Directory...');
   const menuBtn = await page.$('button[aria-label="Open Chapter Directory"]');
   if (menuBtn) {
     await menuBtn.click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: path.join(screenshotDir, 'interaction-chapter-navigation.png') });
     console.log('Captured interaction-chapter-navigation.png');
-    // Press Escape to dismiss
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
   }
 
-  // 4. Test Scene 03 Draggable Archival Comparison
-  console.log('Testing Scene 03 Archival Comparison Slider...');
-  // Scroll to Scene 03 (~52%)
+  // 4. Test Scene 03 Layered Document Reveal Drag
+  console.log('Testing Scene 03 Layered Document Drag Reveal...');
   await page.evaluate((y) => window.scrollTo(0, y), 0.52 * maxScroll);
   await page.waitForTimeout(500);
 
-  const slider = await page.$('[role="slider"]');
-  if (slider) {
-    const box = await slider.boundingBox();
+  const dragLayer = await page.$('[role="region"][aria-label="Layered archival documents"]');
+  if (dragLayer) {
+    const box = await dragLayer.boundingBox();
     if (box) {
-      // Drag slider from center to left
-      await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
+      // Drag top layer from left toward right by 40%
+      await page.mouse.move(box.x + 30, box.y + box.height * 0.5);
       await page.mouse.down();
-      await page.mouse.move(box.x + box.width * 0.25, box.y + box.height * 0.5, { steps: 5 });
+      await page.mouse.move(box.x + box.width * 0.45, box.y + box.height * 0.5, { steps: 8 });
       await page.mouse.up();
       await page.waitForTimeout(300);
-      await page.screenshot({ path: path.join(screenshotDir, 'interaction-archive-comparison-dragged.png') });
-      console.log('Captured interaction-archive-comparison-dragged.png');
+      await page.screenshot({ path: path.join(screenshotDir, 'interaction-archive-layer-dragged.png') });
+      console.log('Captured interaction-archive-layer-dragged.png');
     }
   }
 
   // 5. Test Scene 04 Click-to-Focus Modal
-  console.log('Testing Scene 04 Living Grid Click-to-Focus...');
-  // Scroll to Scene 04 (~82%)
+  console.log('Testing Scene 04 Click-to-Focus Modal...');
   await page.evaluate((y) => window.scrollTo(0, y), 0.82 * maxScroll);
   await page.waitForTimeout(500);
 
-  const firstGridTile = await page.$('div[role="button"][aria-label^="Inspect"]');
-  if (firstGridTile) {
-    await firstGridTile.click();
+  const heroTile = await page.$('div[role="button"][aria-label^="Inspect"]');
+  if (heroTile) {
+    await heroTile.click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: path.join(screenshotDir, 'interaction-living-grid-focus-modal.png') });
     console.log('Captured interaction-living-grid-focus-modal.png');
 
-    // Close modal via Escape
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
   }
@@ -131,7 +127,7 @@ async function runVerification() {
   }
 
   await browser.close();
-  console.log('All verification screenshots captured successfully!');
+  console.log('V3 Verification suite completed successfully!');
 }
 
 runVerification().catch((err) => {

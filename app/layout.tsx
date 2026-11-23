@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Archivo_Black, Instrument_Serif, Manrope } from "next/font/google";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
+const archivo = Archivo_Black({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-cormorant",
+  weight: "400",
+  variable: "--font-archivo",
+  display: "swap",
+});
+
+const instrument = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-instrument",
   display: "swap",
 });
 
@@ -17,8 +24,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
-  title: "Auroville — The Art of Interaction",
-  description: "An experimental editorial digital exhibition and interactive architecture monograph.",
+  title: "Auroville — A Place Still Becoming",
+  description: "An interactive editorial digital publication and architectural exhibition of Auroville.",
 };
 
 export default function RootLayout({
@@ -27,7 +34,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${manrope.variable}`}>
+    <html
+      lang="en"
+      className={`${archivo.variable} ${instrument.variable} ${manrope.variable}`}
+    >
       <body className="bg-paper text-ink font-sans antialiased selection:bg-terracotta selection:text-paper-light overflow-x-hidden">
         {children}
       </body>

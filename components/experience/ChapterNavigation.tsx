@@ -15,7 +15,7 @@ export default function ChapterNavigation({
 }: ChapterNavigationProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  // Identify active chapter based on progress
+  // Synchronized active chapter calculation
   const activeChapter =
     CHAPTERS.find(
       (ch) => currentProgress >= ch.range[0] && currentProgress < ch.range[1]
@@ -42,12 +42,12 @@ export default function ChapterNavigation({
       <header className="fixed top-0 left-0 right-0 z-40 px-6 md:px-12 py-5 flex items-center justify-between pointer-events-none">
         {/* Top-left: Project wordmark / identifier */}
         <div className="pointer-events-auto flex items-center gap-3">
-          <span className="font-mono text-[10px] md:text-[11px] tracking-widest text-ink uppercase font-semibold">
-            AV / EXPERIMENT 001
+          <span className="font-display text-sm tracking-wider text-ink uppercase">
+            AUROVILLE
           </span>
-          <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-terracotta" />
-          <span className="hidden sm:inline-block font-serif italic text-xs text-ink-muted">
-            The Art of Interaction
+          <span className="w-1.5 h-1.5 rounded-full bg-terracotta inline-block" />
+          <span className="font-serif italic text-xs text-ink-muted hidden sm:inline-block">
+            A Place Still Becoming
           </span>
         </div>
 
@@ -57,7 +57,7 @@ export default function ChapterNavigation({
             onClick={() => setIsOpen(!isOpen)}
             aria-expanded={isOpen}
             aria-label="Open Chapter Directory"
-            className="group flex items-center gap-3 px-3.5 py-1.5 bg-paper/90 backdrop-blur-md border border-border hover:border-ink transition-colors rounded-sm text-ink"
+            className="group flex items-center gap-3 px-3.5 py-1.5 bg-paper-light/95 backdrop-blur-md border border-border hover:border-ink transition-colors rounded-sm text-ink shadow-sm"
           >
             <span className="font-mono text-[10px] text-terracotta tracking-wider font-semibold">
               CHAPTER {activeChapter.number}
@@ -84,15 +84,15 @@ export default function ChapterNavigation({
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-3xl w-full bg-paper border border-border archival-shadow p-8 md:p-12"
+            className="relative max-w-2xl w-full bg-paper border border-border archival-shadow p-8 md:p-12"
           >
             <div className="flex items-center justify-between pb-6 border-b border-border">
               <div>
-                <span className="font-mono text-[10px] text-terracotta uppercase tracking-widest">
-                  INDEX / DIRECTORY
+                <span className="font-mono text-[10px] text-terracotta uppercase tracking-widest font-semibold">
+                  DIRECTORY / FOUR CHAPTERS
                 </span>
-                <h2 className="font-serif text-2xl md:text-3xl text-ink font-light mt-1">
-                  Four Connected Chapters
+                <h2 className="font-serif italic text-2xl md:text-3xl text-ink font-light mt-1">
+                  A Place Still Becoming
                 </h2>
               </div>
               <button
@@ -111,12 +111,12 @@ export default function ChapterNavigation({
                   <button
                     key={ch.id}
                     onClick={() => handleSelect(ch)}
-                    className={`w-full py-5 text-left flex items-start justify-between group transition-colors ${
-                      isActive ? "bg-paper-light/50 px-4 -mx-4" : "hover:bg-paper-light/30"
+                    className={`w-full py-4 text-left flex items-start justify-between group transition-colors ${
+                      isActive ? "bg-paper-light/70 px-4 -mx-4" : "hover:bg-paper-light/40"
                     }`}
                   >
-                    <div className="flex items-baseline gap-6">
-                      <span className="font-mono text-sm md:text-base text-terracotta font-medium">
+                    <div className="flex items-baseline gap-5">
+                      <span className="font-display text-base text-terracotta">
                         {ch.number}
                       </span>
                       <div>
@@ -126,11 +126,11 @@ export default function ChapterNavigation({
                           </h3>
                           {isActive && (
                             <span className="font-mono text-[9px] uppercase px-2 py-0.5 bg-ink text-paper-light tracking-widest">
-                              ACTIVE
+                              CURRENT
                             </span>
                           )}
                         </div>
-                        <p className="font-sans text-xs md:text-sm text-ink-muted mt-1 font-light">
+                        <p className="font-sans text-xs md:text-sm text-ink-muted mt-0.5 font-light">
                           {ch.subtitle}
                         </p>
                       </div>
@@ -144,8 +144,8 @@ export default function ChapterNavigation({
             </div>
 
             <div className="mt-8 pt-4 border-t border-border flex items-center justify-between text-ink-faint text-[10px] font-mono tracking-widest uppercase">
-              <span>CONTINUOUS PROGRESSIVE CHOREOGRAPHY</span>
-              <span>ESC TO DISMISS</span>
+              <span>EXPLORE BY CHAPTER</span>
+              <span>ESC TO CLOSE</span>
             </div>
           </div>
         </div>

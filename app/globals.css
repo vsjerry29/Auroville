@@ -3,16 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --paper: #F0EADF;
-  --paper-light: #F8F4EB;
-  --paper-dark: #E6DFD2;
-  --ink: #1B1D19;
-  --ink-muted: #79766C;
-  --ink-faint: #A5A196;
-  --terracotta: #B65F42;
-  --forest: #3D5642;
-  --gold: #C59A46;
-  --border: #D7D0C3;
+  --paper: #F6F3EB;
+  --paper-light: #FCFAF6;
+  --paper-alt: #EDE6D8;
+  --paper-dark: #E3DBD0;
+  --ink: #191917;
+  --ink-muted: #6B6960;
+  --ink-faint: #9C988D;
+  --terracotta: #B75E3F;
+  --forest: #435A45;
+  --gold: #C39B57;
+  --border: #DFD9CC;
 }
 
 /* Custom scrollbar matching editorial aesthetic */
@@ -30,20 +31,20 @@
   background: var(--ink-muted);
 }
 
-/* Architectural paper texture backdrop */
+/* Paper grain texture */
 .paper-texture {
   background-color: var(--paper);
-  background-image: radial-gradient(rgba(27, 29, 25, 0.03) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background-image: radial-gradient(rgba(25, 25, 23, 0.035) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
-/* Restrained print shadow */
+/* Editorial print shadow */
 .archival-shadow {
-  box-shadow: 0 20px 48px -12px rgba(27, 29, 25, 0.12), 0 4px 12px -2px rgba(27, 29, 25, 0.04);
+  box-shadow: 0 20px 48px -12px rgba(25, 25, 23, 0.12), 0 4px 12px -2px rgba(25, 25, 23, 0.04);
 }
 
 .archival-shadow-subtle {
-  box-shadow: 0 12px 32px -8px rgba(27, 29, 25, 0.08);
+  box-shadow: 0 10px 28px -6px rgba(25, 25, 23, 0.08);
 }
 
 /* Micro typography */
@@ -60,7 +61,6 @@
   border-color: var(--border);
 }
 
-/* Prevent unwanted browser dragging */
 img {
   user-select: none;
   -webkit-user-drag: none;

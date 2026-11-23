@@ -49,14 +49,14 @@ export default function ImageFocus({ image, onClose }: ImageFocusProps) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          aria-label="Close focus view"
+          aria-label="Close image inspection"
           className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-paper/90 border border-border text-ink hover:text-terracotta hover:border-terracotta transition-colors flex items-center justify-center"
         >
           <X size={18} />
         </button>
 
         {/* Image viewport */}
-        <div className="relative w-full md:w-3/5 h-64 md:h-auto min-h-[300px] md:min-h-[500px] bg-paper-dark">
+        <div className="relative w-full md:w-3/5 h-64 md:h-auto min-h-[320px] md:min-h-[520px] bg-paper-dark">
           <Image
             src={image.src}
             alt={image.caption}
@@ -72,18 +72,18 @@ export default function ImageFocus({ image, onClose }: ImageFocusProps) {
           <div>
             <div className="flex items-center gap-2 text-ink-muted text-[10px] uppercase tracking-widest font-mono pb-3 border-b border-border">
               <span className="w-2 h-2 rounded-full bg-terracotta inline-block" />
-              <span>COLLECTION ARCHIVE / {image.category.toUpperCase()}</span>
+              <span>EDITORIAL ARCHIVE / {image.category.toUpperCase()}</span>
             </div>
 
-            <h2 className="font-serif text-2xl md:text-3xl text-ink font-light mt-4 tracking-tight">
+            <h2 className="font-serif italic text-3xl md:text-4xl text-ink font-light mt-4 tracking-tight">
               {image.title}
             </h2>
 
-            <div className="mt-2 text-ink-muted font-mono text-[11px] tracking-wide">
+            <div className="mt-1 text-ink-muted font-mono text-[11px] tracking-wide">
               {image.location} {image.year ? `· ${image.year}` : ""}
             </div>
 
-            <p className="mt-6 font-sans text-sm md:text-base text-ink/90 leading-relaxed font-light">
+            <p className="mt-5 font-sans text-sm md:text-base text-ink/90 leading-relaxed font-light">
               {image.caption}
             </p>
           </div>
@@ -111,7 +111,7 @@ export default function ImageFocus({ image, onClose }: ImageFocusProps) {
                 onClick={onClose}
                 className="w-full py-2.5 text-[11px] font-mono uppercase tracking-widest text-ink hover:text-paper-light bg-paper hover:bg-ink border border-border transition-colors"
               >
-                Return to Living Grid [ESC]
+                Close Inspection [ESC]
               </button>
             </div>
           </div>

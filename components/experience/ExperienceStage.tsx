@@ -13,11 +13,11 @@ interface ExperienceStageProps {
 }
 
 export default function ExperienceStage({ progress, onNavigate }: ExperienceStageProps) {
-  // Determine which scenes are active based on global progress
-  const isScene01Active = progress <= 0.26;
-  const isScene02Active = progress >= 0.18 && progress <= 0.48;
-  const isScene03Active = progress >= 0.40 && progress <= 0.76;
-  const isScene04Active = progress >= 0.68;
+  // Synchronized active ranges matching CHAPTERS ranges exactly
+  const isScene01Active = progress <= 0.25;
+  const isScene02Active = progress >= 0.20 && progress <= 0.48;
+  const isScene03Active = progress >= 0.42 && progress <= 0.76;
+  const isScene04Active = progress >= 0.70;
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-paper text-ink selection:bg-terracotta selection:text-paper-light">
@@ -29,7 +29,11 @@ export default function ExperienceStage({ progress, onNavigate }: ExperienceStag
         <EditorialCover progress={progress} active={isScene01Active} />
         <InsidePhotograph progress={progress} active={isScene02Active} />
         <ArchiveScene progress={progress} active={isScene03Active} />
-        <LivingGrid progress={progress} active={isScene04Active} />
+        <LivingGrid
+          progress={progress}
+          active={isScene04Active}
+          onNavigateStart={() => onNavigate(0.0)}
+        />
       </div>
 
       {/* Global Scroll Progress Indicator */}
