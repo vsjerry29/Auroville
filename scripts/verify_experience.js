@@ -6,7 +6,7 @@ const screenshotDir = path.join(__dirname, '..', 'docs', 'screenshots');
 fs.mkdirSync(screenshotDir, { recursive: true });
 
 async function runVerification() {
-  console.log('Launching browser for V3 verification...');
+  console.log('Launching browser for V4 CH03/CH04 verification...');
   const browser = await chromium.launch({ channel: 'msedge' });
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
@@ -19,7 +19,7 @@ async function runVerification() {
   await page.waitForTimeout(1000);
 
   // 1. Desktop progress steps: 0% to 100%
-  const steps = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  const steps = [0, 15, 25, 35, 48, 60, 70, 78, 86, 95, 100];
   const maxScroll = await page.evaluate(() => {
     return document.documentElement.scrollHeight - window.innerHeight;
   });
@@ -77,60 +77,66 @@ async function runVerification() {
     await page.waitForTimeout(300);
   }
 
-  // 5. Test Chapter 03 Layer Comparison Slider Drag (Interaction I023)
-  console.log('Testing Chapter 03 Layer Comparison Slider Drag...');
-  await page.evaluate((y) => window.scrollTo(0, y), 0.52 * maxScroll);
+  // 5. Test Chapter 03 Layer Comparison Toggle & Structural Callout
+  console.log('Testing Chapter 03 State C Callout...');
+  await page.evaluate((y) => window.scrollTo(0, y), 0.68 * maxScroll);
   await page.waitForTimeout(500);
 
-  const comparisonRegion = await page.$('[role="region"][aria-label^="Interactive architectural drawing comparison"]');
-  if (comparisonRegion) {
-    const box = await comparisonRegion.boundingBox();
-    if (box) {
-      // Drag divider handle from 50% to 25% to reveal more of shaded state
-      await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
-      await page.mouse.down();
-      await page.mouse.move(box.x + box.width * 0.28, box.y + box.height * 0.5, { steps: 8 });
-      await page.mouse.up();
-      await page.waitForTimeout(400);
-      await page.screenshot({ path: path.join(screenshotDir, 'interaction-ch03-layer-comparison.png') });
-      console.log('Captured interaction-ch03-layer-comparison.png');
-    }
-  }
-
-  // 6. Test Chapter 03 Structural Callout Modal (Interaction I024)
-  console.log('Testing Chapter 03 Structural Callout Modal...');
-  const calloutBtn = await page.$('button:has-text("1,415 ACOUSTIC DISCS")');
+  const calloutBtn = await page.$('button:has-text("1,415 GILDED DISCS")');
   if (calloutBtn) {
     await calloutBtn.click();
     await page.waitForTimeout(400);
     await page.screenshot({ path: path.join(screenshotDir, 'interaction-ch03-structural-callout.png') });
     console.log('Captured interaction-ch03-structural-callout.png');
-    await page.keyboard.press('Escape');
+    const closeSpecBtn = await page.$('button[aria-label="Close specification"]');
+    if (closeSpecBtn) {
+      await closeSpecBtn.click();
+    } else {
+      await page.keyboard.press('Escape');
+    }
     await page.waitForTimeout(300);
   }
 
-  // 7. Test Scene 04 Click-to-Focus Modal
-  console.log('Testing Scene 04 Click-to-Focus Modal...');
-  await page.evaluate((y) => window.scrollTo(0, y), 0.82 * maxScroll);
+  // 6. Test Chapter 04 Suspended Print Modal (Click on PLATE 04-B)
+  console.log('Testing Chapter 04 Suspended Print Modal...');
+  await page.evaluate((y) => window.scrollTo(0, y), 0.78 * maxScroll);
   await page.waitForTimeout(500);
 
-  const heroTile = await page.$('div[role="button"][aria-label^="Inspect"]');
-  if (heroTile) {
-    await heroTile.click();
+  const seedPrintCard = await page.$('div[aria-label*="PLATE 04-B"]');
+  if (seedPrintCard) {
+    await seedPrintCard.click();
     await page.waitForTimeout(400);
-    await page.screenshot({ path: path.join(screenshotDir, 'interaction-living-grid-focus-modal.png') });
-    console.log('Captured interaction-living-grid-focus-modal.png');
-
-    await page.keyboard.press('Escape');
+    await page.screenshot({ path: path.join(screenshotDir, 'interaction-ch04-print-focus-modal.png') });
+    console.log('Captured interaction-ch04-print-focus-modal.png');
+    const closePrintBtn = await page.$('button[aria-label="Close print inspection"]');
+    if (closePrintBtn) {
+      await closePrintBtn.click();
+    } else {
+      await page.keyboard.press('Escape');
+    }
     await page.waitForTimeout(300);
   }
+
+  // 7. Test Chapter 04 Landscape Expansion & Seed Planting
+  console.log('Testing Chapter 04 Seed Planting in Landscape Expansion...');
+  await page.evaluate((y) => window.scrollTo(0, y), 0.98 * maxScroll);
+  await page.waitForTimeout(500);
+
+  // Click three spots on the red earth landscape to plant seeds
+  await page.mouse.click(450, 450);
+  await page.waitForTimeout(200);
+  await page.mouse.click(700, 500);
+  await page.waitForTimeout(200);
+  await page.mouse.click(950, 480);
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: path.join(screenshotDir, 'interaction-ch04-planted-seeds.png') });
+  console.log('Captured interaction-ch04-planted-seeds.png');
 
   // 8. Responsive Viewports:
   const responsiveViewports = [
     { name: 'laptop-1280x800', width: 1280, height: 800 },
     { name: 'tablet-768x1024', width: 768, height: 1024 },
     { name: 'mobile-390x844', width: 390, height: 844 },
-    { name: 'mobile-375x812', width: 375, height: 812 },
   ];
 
   for (const vp of responsiveViewports) {
@@ -145,24 +151,24 @@ async function runVerification() {
     const vpMaxScroll = await page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight);
 
     // Chapter 02 Panorama
-    await page.evaluate((y) => window.scrollTo(0, y), 0.32 * vpMaxScroll);
+    await page.evaluate((y) => window.scrollTo(0, y), 0.35 * vpMaxScroll);
     await page.waitForTimeout(400);
     await page.screenshot({ path: path.join(screenshotDir, `responsive-${vp.name}-ch02-panorama.png`) });
 
-    // Scene 03 Archive
-    await page.evaluate((y) => window.scrollTo(0, y), 0.52 * vpMaxScroll);
+    // Scene 03 Lateral Track
+    await page.evaluate((y) => window.scrollTo(0, y), 0.60 * vpMaxScroll);
     await page.waitForTimeout(400);
-    await page.screenshot({ path: path.join(screenshotDir, `responsive-${vp.name}-archive.png`) });
+    await page.screenshot({ path: path.join(screenshotDir, `responsive-${vp.name}-ch03-lateral.png`) });
 
-    // Scene 04 Living Grid
-    await page.evaluate((y) => window.scrollTo(0, y), 0.82 * vpMaxScroll);
+    // Scene 04 Suspended Prints
+    await page.evaluate((y) => window.scrollTo(0, y), 0.78 * vpMaxScroll);
     await page.waitForTimeout(400);
-    await page.screenshot({ path: path.join(screenshotDir, `responsive-${vp.name}-grid.png`) });
+    await page.screenshot({ path: path.join(screenshotDir, `responsive-${vp.name}-ch04-prints.png`) });
     console.log(`Captured responsive views for ${vp.name}`);
   }
 
   await browser.close();
-  console.log('V3 Verification suite completed successfully!');
+  console.log('V4 CH03/CH04 Verification suite completed successfully!');
 }
 
 runVerification().catch((err) => {

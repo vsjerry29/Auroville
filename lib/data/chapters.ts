@@ -40,10 +40,10 @@ export const CHAPTERS: Chapter[] = [
   {
     id: "ch04",
     number: "04",
-    title: "Perspectives",
-    subtitle: "Living Editorial Spread",
+    title: "The Earth Remembers",
+    subtitle: "Suspended Print Exhibition",
     act: "ACT I",
-    range: [0.73, 1.0],
+    range: [0.73, 1.01],
     targetProgress: 0.78,
   },
   // ACT II — NATURE TAKES OVER (Planned Roadmap)

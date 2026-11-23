@@ -1,0 +1,25 @@
+<svg viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Subtle circular growth rings and radial planning grid -->
+  <circle cx="400" cy="400" r="380" stroke="#191917" stroke-width="0.75" stroke-dasharray="3 3" opacity="0.35"/>
+  <circle cx="400" cy="400" r="320" stroke="#191917" stroke-width="0.75" opacity="0.4"/>
+  <circle cx="400" cy="400" r="260" stroke="#5B5751" stroke-width="0.75" stroke-dasharray="4 4" opacity="0.3"/>
+  <circle cx="400" cy="400" r="200" stroke="#191917" stroke-width="0.75" opacity="0.45"/>
+  <circle cx="400" cy="400" r="140" stroke="#B75E3F" stroke-width="0.75" opacity="0.35"/>
+  <circle cx="400" cy="400" r="80" stroke="#191917" stroke-width="0.75" opacity="0.5"/>
+  <circle cx="400" cy="400" r="30" stroke="#B75E3F" stroke-width="1" opacity="0.6"/>
+
+  <!-- Radial axis lines (like spiral galaxy and growth rings) -->
+  <line x1="400" y1="20" x2="400" y2="780" stroke="#191917" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.3"/>
+  <line x1="20" y1="400" x2="780" y2="400" stroke="#191917" stroke-width="0.5" stroke-dasharray="2 4" opacity="0.3"/>
+  <line x1="131" y1="131" x2="669" y2="669" stroke="#5B5751" stroke-width="0.5" stroke-dasharray="3 5" opacity="0.25"/>
+  <line x1="131" y1="669" x2="669" y2="131" stroke="#5B5751" stroke-width="0.5" stroke-dasharray="3 5" opacity="0.25"/>
+
+  <!-- Organic growth arcs mimicking root formations -->
+  <path d="M 400 370 C 450 350, 480 300, 520 280 C 560 260, 620 270, 680 230" stroke="#5B5751" stroke-width="0.75" stroke-linecap="round" opacity="0.35"/>
+  <path d="M 400 430 C 350 450, 310 510, 270 540 C 230 570, 180 560, 120 600" stroke="#5B5751" stroke-width="0.75" stroke-linecap="round" opacity="0.35"/>
+  <path d="M 370 400 C 340 460, 280 480, 250 530 C 220 580, 210 640, 160 700" stroke="#B75E3F" stroke-width="0.75" stroke-linecap="round" opacity="0.3"/>
+  <path d="M 430 400 C 460 340, 530 320, 580 270 C 630 220, 640 160, 710 110" stroke="#B75E3F" stroke-width="0.75" stroke-linecap="round" opacity="0.3"/>
+
+  <!-- Technical degree tick marks -->
+  <circle cx="400" cy="400" r="3" fill="#B75E3F" opacity="0.7"/>
+</svg>

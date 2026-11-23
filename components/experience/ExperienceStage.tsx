@@ -3,7 +3,7 @@
 import EditorialCover from "@/components/scenes/EditorialCover";
 import Chapter02PageOpens from "@/components/scenes/Chapter02PageOpens";
 import Chapter03GoldenStructure from "@/components/scenes/Chapter03GoldenStructure";
-import LivingGrid from "@/components/scenes/LivingGrid";
+import Chapter04RedEarth from "@/components/scenes/Chapter04RedEarth";
 import ChapterNavigation from "@/components/experience/ChapterNavigation";
 import ProgressIndicator from "@/components/experience/ProgressIndicator";
 
@@ -16,8 +16,8 @@ export default function ExperienceStage({ progress, onNavigate }: ExperienceStag
   // Synchronized active ranges matching CHAPTERS ranges exactly
   const isScene01Active = progress <= 0.25;
   const isScene02Active = progress >= 0.20 && progress <= 0.48;
-  const isScene03Active = progress >= 0.42 && progress <= 0.76;
-  const isScene04Active = progress >= 0.70;
+  const isScene03Active = progress >= 0.42 && progress <= 0.75;
+  const isScene04Active = progress >= 0.72;
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-paper text-ink selection:bg-terracotta selection:text-paper-light">
@@ -29,7 +29,7 @@ export default function ExperienceStage({ progress, onNavigate }: ExperienceStag
         <EditorialCover progress={progress} active={isScene01Active} />
         <Chapter02PageOpens progress={progress} active={isScene02Active} />
         <Chapter03GoldenStructure progress={progress} active={isScene03Active} />
-        <LivingGrid
+        <Chapter04RedEarth
           progress={progress}
           active={isScene04Active}
           onNavigateStart={() => onNavigate(0.0)}

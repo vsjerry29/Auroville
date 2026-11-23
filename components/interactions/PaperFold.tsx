@@ -53,10 +53,13 @@ export default function PaperFold({
     }
   };
 
-  // Polygon mask calculating the peeling page fold from right to left
-  // At progress = 0: fold is at 100% (right edge)
-  // At progress = 1: fold is at 0% (fully open)
-  const foldX = Math.max(0, 100 - effectiveProgress * 100);
+  // Polygon mask calculating the peeling page fold from left to right across the screen
+  // At progress = 0: 0% visible (closed)
+  // At progress = 1: 100% visible (fully open)
+  const revealPercent = Math.min(100, Math.max(0, effectiveProgress * 100));
+  // An angled fold crease with realistic page curvature
+  const topFoldX = revealPercent;
+  const bottomFoldX = Math.max(0, revealPercent - 6);
 
   return (
     <div className={`relative w-full h-full overflow-hidden ${className}`}>
@@ -64,14 +67,14 @@ export default function PaperFold({
       <div
         className="absolute inset-0 w-full h-full transition-all duration-75"
         style={{
-          clipPath: `polygon(0% 0%, ${100 - foldX * 0.1}% 0%, 100% 100%, 0% 100%)`,
+          clipPath: `polygon(0% 0%, ${topFoldX}% 0%, ${bottomFoldX}% 100%, 0% 100%)`,
         }}
       >
         {children}
       </div>
 
       {/* Folding Page Crease / Shadow / Tab (Interactions I011 & I015) */}
-      {effectiveProgress < 0.95 && (
+      {effectiveProgress > 0.02 && effectiveProgress < 0.98 && (
         <div
           role="slider"
           aria-label="Drag page fold to reveal panorama"
@@ -84,22 +87,22 @@ export default function PaperFold({
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerUp}
           onKeyDown={(e) => {
-            if (e.key === "ArrowLeft") setManualOffset((prev) => Math.min(0.5, prev + 0.1));
-            if (e.key === "ArrowRight") setManualOffset((prev) => Math.max(-0.3, prev - 0.1));
+            if (e.key === "ArrowRight") setManualOffset((prev) => Math.min(0.5, prev + 0.1));
+            if (e.key === "ArrowLeft") setManualOffset((prev) => Math.max(-0.3, prev - 0.1));
           }}
-          className="absolute top-0 bottom-0 z-20 cursor-ew-resize flex items-center justify-center select-none"
+          className="absolute top-0 bottom-0 z-20 cursor-ew-resize flex items-center justify-center select-none pointer-events-auto"
           style={{
-            left: `${foldX}%`,
+            left: `${revealPercent}%`,
             width: "36px",
             transform: "translateX(-50%)",
           }}
         >
           {/* Subtle paper fold highlight & shadow */}
-          <div className="absolute inset-y-0 w-[1px] bg-ink/20 shadow-[0_0_15px_rgba(25,25,23,0.15)]" />
+          <div className="absolute inset-y-0 w-[1px] bg-ink/25 shadow-[0_0_20px_rgba(25,25,23,0.2)]" />
 
           {/* Tactile Pull-Tab affordance (Interaction I015) */}
-          <div className="relative px-2 py-3 bg-paper border border-border shadow-md rounded-xs flex flex-col items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-terracotta">
-            <span>◀</span>
+          <div className="relative px-2 py-3 bg-paper border border-border archival-shadow-subtle rounded-xs flex flex-col items-center gap-1 font-mono text-[9px] uppercase tracking-widest text-terracotta">
+            <span>▶</span>
             <span className="hidden sm:inline [writing-mode:vertical-rl] rotate-180">
               PEEL PAGE
             </span>

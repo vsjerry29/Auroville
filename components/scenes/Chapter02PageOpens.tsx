@@ -58,7 +58,12 @@ export default function Chapter02PageOpens({
         {/* THE HIGH-RESOLUTION ILLUSTRATED PANORAMA (Interaction I012) */}
         <div className="relative w-full h-full overflow-hidden">
           {/* Master 16:9 Landscape Illustration (Desktop) */}
-          <div className="hidden sm:block absolute inset-0 w-full h-full">
+          <div
+            className="hidden sm:block absolute inset-0 w-full h-full transition-transform duration-100 ease-out"
+            style={{
+              transform: `scale(${1.04 - localProgress * 0.04})`,
+            }}
+          >
             <Image
               src="/illustrated/ch02-page/panorama-master.webp"
               alt="High-resolution original hand-drawn panorama of Auroville red-earth landscape and Matrimandir"
@@ -166,28 +171,28 @@ export default function Chapter02PageOpens({
             </div>
           )}
 
-          {/* EDITORIAL FLOATING STATEMENT (Phases 1 & 2) */}
+          {/* EDITORIAL STATEMENT (Refined, Non-Intrusive Proportions) */}
           <div
-            className="absolute z-30 left-6 md:left-16 bottom-20 md:bottom-24 max-w-2xl p-6 md:p-8 bg-paper/90 backdrop-blur-md border-l-2 border-terracotta archival-shadow transition-all duration-100 ease-out pointer-events-none"
+            className="absolute z-30 left-6 md:left-14 bottom-14 md:bottom-20 max-w-lg p-5 md:p-6 bg-paper/75 backdrop-blur-sm border-l-2 border-terracotta archival-shadow-subtle transition-all duration-100 ease-out pointer-events-none"
             style={{
               opacity: statementOpacity,
-              transform: `translateY(${(1 - statementEnter) * 30}px)`,
+              transform: `translateY(${(1 - statementEnter) * 20}px)`,
             }}
           >
-            <div className="flex items-center gap-3 mb-2 font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold">
+            <div className="flex items-center gap-3 mb-1.5 font-mono text-[9px] md:text-[10px] uppercase tracking-widest text-terracotta font-semibold">
               <span>CHAPTER 02 / THE PAGE OPENS</span>
-              <span className="w-6 h-[1px] bg-terracotta/50" />
+              <span className="w-5 h-[1px] bg-terracotta/50" />
               <span className="text-ink-muted">DRAWING INTO REALITY</span>
             </div>
 
-            <h2 className="font-serif italic text-3xl sm:text-5xl md:text-6xl text-ink font-light tracking-tight">
+            <h2 className="font-serif italic text-2xl sm:text-3xl md:text-4xl text-ink font-light tracking-tight leading-tight">
               From a single mark,
             </h2>
-            <h3 className="font-display text-2xl sm:text-4xl md:text-5xl text-terracotta tracking-tight mt-1">
+            <h3 className="font-display text-xl sm:text-2xl md:text-3xl text-terracotta tracking-tight mt-0.5">
               AN ILLUSTRATED WORLD.
             </h3>
 
-            <p className="mt-4 font-sans text-xs md:text-sm text-ink-muted leading-relaxed font-light">
+            <p className="mt-2.5 font-sans text-xs text-ink-muted leading-relaxed font-light">
               Red laterite earth paths cut through millions of indigenous trees hand-planted to
               regenerate the plateau, culminating in the golden sphere of central Auroville.
             </p>
