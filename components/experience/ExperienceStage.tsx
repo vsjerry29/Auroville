@@ -14,10 +14,9 @@ interface ExperienceStageProps {
 
 export default function ExperienceStage({ progress, onNavigate }: ExperienceStageProps) {
   // Synchronized active ranges matching CHAPTERS ranges exactly
-  // Scene 01 remains active until progress 0.32 to provide underlying graphite artwork during Scene 02's page fold
-  const isScene01Active = progress <= 0.32;
-  const isScene02Active = progress >= 0.20 && progress <= 0.48;
-  const isScene03Active = progress >= 0.42 && progress <= 0.75;
+  const isScene01Active = progress <= 0.24;
+  const isScene02Active = progress >= 0.20 && progress <= 0.46;
+  const isScene03Active = progress >= 0.44 && progress <= 0.75;
   const isScene04Active = progress >= 0.72;
 
   return (

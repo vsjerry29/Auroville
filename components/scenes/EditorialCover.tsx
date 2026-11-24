@@ -75,7 +75,7 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
     };
   }, []);
 
-  if (!active && progress > 0.32) {
+  if (!active && progress > 0.24) {
     return null;
   }
 
@@ -113,7 +113,7 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
       className="absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden pointer-events-none select-none bg-paper"
       style={{
         zIndex: 10,
-        visibility: progress <= 0.32 ? "visible" : "hidden",
+        visibility: progress <= 0.24 ? "visible" : "hidden",
       }}
     >
       {/* =====================================================================

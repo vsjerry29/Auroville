@@ -41,8 +41,8 @@ export default function ChapterNavigation({
       {/* Top Header / Bar */}
       <header className="fixed top-0 left-0 right-0 z-40 px-6 md:px-12 py-5 flex items-center justify-between pointer-events-none">
         {/* Top-left: Project wordmark / identifier */}
-        <div className="pointer-events-auto flex items-center gap-3">
-          <span className="font-display text-sm tracking-wider text-ink uppercase">
+        <div className="pointer-events-auto flex items-center gap-3 px-3.5 py-1.5 bg-paper-light/95 backdrop-blur-md border border-border rounded-sm text-ink shadow-sm">
+          <span className="font-display text-xs tracking-wider text-ink uppercase">
             AUROVILLE
           </span>
           <span className="w-1.5 h-1.5 rounded-full bg-terracotta inline-block" />

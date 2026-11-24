@@ -15,8 +15,8 @@ export default function Chapter03GoldenStructure({
   progress,
   active,
 }: Chapter03GoldenStructureProps) {
-  // Normalize progress for Chapter 03 (0.42 to 0.75)
-  const localProgress = Math.min(1, Math.max(0, (progress - 0.42) / 0.33));
+  // Normalize progress for Chapter 03 (0.45 to 0.73)
+  const localProgress = Math.min(1, Math.max(0, (progress - 0.45) / 0.28));
 
   // Interactive modes
   const [outlineMode, setOutlineMode] = useState(false);
@@ -35,7 +35,7 @@ export default function Chapter03GoldenStructure({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  if (!active && (progress < 0.40 || progress > 0.77)) {
+  if (!active && (progress < 0.44 || progress > 0.75)) {
     return null;
   }
 
@@ -64,11 +64,11 @@ export default function Chapter03GoldenStructure({
       className="absolute inset-0 w-full h-full overflow-hidden select-none bg-paper text-ink transition-opacity duration-300"
       style={{
         zIndex: 20,
-        visibility: progress >= 0.40 && progress <= 0.77 ? "visible" : "hidden",
-        pointerEvents: progress >= 0.42 && progress <= 0.75 ? "auto" : "none",
+        visibility: progress >= 0.44 && progress <= 0.75 ? "visible" : "hidden",
+        pointerEvents: progress >= 0.45 && progress <= 0.73 ? "auto" : "none",
         opacity:
-          Math.min(1, Math.max(0, (progress - 0.40) / 0.02)) *
-          Math.min(1, Math.max(0, (0.77 - progress) / 0.02)),
+          Math.min(1, Math.max(0, (progress - 0.44) / 0.02)) *
+          Math.min(1, Math.max(0, (0.75 - progress) / 0.02)),
       }}
     >
       {/* Interactive Architectural Drafting Background Field */}
