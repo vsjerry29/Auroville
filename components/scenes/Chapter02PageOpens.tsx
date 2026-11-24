@@ -63,38 +63,35 @@ export default function Chapter02PageOpens({
   // ---------------------------------------------------------------------------
   // SCROLL CHOREOGRAPHY (Strictly matching V5 specification)
   //
-  // Phase A (0.00 – 0.22 local): Illustrated reveal. Hand-drawn linework & color.
-  // Phase B (0.22 – 0.42 local): Alignment & living detail. Composition settles into photo framing.
-  // Phase C (0.42 – 0.78 local): Illustration -> photo transformation!
-  //   - 0.42 – 0.55: Golden discs in dome emerge in sunlight. Linework lingers.
-  //   - 0.55 – 0.68: Sandstone ramps & marble lotus petals transition into photo.
-  //   - 0.68 – 0.78: Surrounding trees and sky resolve into photograph; linework dissolves.
-  // Phase D (0.78 – 1.00 local): Full photographic hold. Restrained camera push-in.
+  // Phase A (0.00 – 0.20 local): Architectural pencil sketch with drafting arcs
+  // Phase B (0.20 – 0.38 local): Watercolor wash smoothly glazes into colored illustration
+  // Phase C (0.38 – 0.75 local): Radial photograph reveal from dome center (50% 52.1%)
+  // Phase D (0.75 – 1.00 local): Full photographic hold in stable, beautifully framed composition
   // ---------------------------------------------------------------------------
 
   // Scene entry fade-in from Chapter 01
   const sceneOpacity = Math.min(1, Math.max(0, localProgress / 0.08));
 
-  // Phase C: Photo mask radius calculation (radial expansion from dome center 50.5% 42%)
-  const transformPhase = Math.min(1, Math.max(0, (localProgress - 0.38) / 0.38));
+  // Phase B: Watercolor wash opacity over pencil sketch
+  const colorWashOpacity = Math.min(1, Math.max(0, (localProgress - 0.16) / 0.20));
+
+  // Phase C: Photo mask radius calculation (radial expansion from dome center 50% 52.1%)
+  const transformPhase = Math.min(1, Math.max(0, (localProgress - 0.36) / 0.38));
   
-  // Curved ease for natural expanding light wave
+  // Curved ease for natural expanding sunlight wave
   const curvedT = Math.pow(transformPhase, 1.25);
   const maskRadius = transformPhase > 0 ? curvedT * 140 : 0;
   const maskFeather = 16;
 
-  // Linework overlay opacity: prominent at start of Phase C, dissolving by end of Phase C
-  const lineworkOpacity = transformPhase > 0.04 && transformPhase < 0.85
-    ? Math.sin((transformPhase - 0.04) / 0.81 * Math.PI) * 0.42
+  // Linework overlay opacity: prominent during Phase C transformation, dissolving cleanly into reality
+  const lineworkOpacity = transformPhase > 0.02 && transformPhase < 0.82
+    ? Math.sin(transformPhase * Math.PI) * 0.32
     : 0;
 
-  // Photo scale: subtle push-in as it becomes real
-  const photoPushIn = 1.06 + Math.min(0.03, localProgress * 0.03);
-
   // Statement caption enter & exit
-  const isPhotographicHold = localProgress >= 0.75;
-  const statementEnter = Math.min(1, Math.max(0, (localProgress - 0.08) / 0.12));
-  const statementExit = Math.min(1, Math.max(0, (localProgress - 0.88) / 0.10));
+  const isPhotographicHold = localProgress >= 0.74;
+  const statementEnter = Math.min(1, Math.max(0, (localProgress - 0.01) / 0.08));
+  const statementExit = Math.min(1, Math.max(0, (localProgress - 0.90) / 0.10));
   const statementOpacity = statementEnter * (1 - statementExit);
 
   // Handoff to Scene 03
@@ -121,97 +118,96 @@ export default function Chapter02PageOpens({
       )}
 
       {/* =====================================================================
-          LAYER 01: THE MASTER ILLUSTRATED SCENE (Watercolor & Fine Ink Line Art)
-          Frontal perspective matching the photograph 1:1.
+          MASTER ALIGNED COMPOSITION WRAPPER
+          All three layers share the exact same container, position, and pointer physics
+          ensuring 100% pixel-perfect congruence across viewports with zero ghosting.
           ===================================================================== */}
       <div
         className="absolute inset-0 w-full h-full transition-transform duration-100 ease-out"
         style={{
-          transform: `translate(${pointerOffset.x * 0.4}px, ${pointerOffset.y * 0.3}px)`,
+          transform: `translate(${pointerOffset.x * 0.25}px, ${pointerOffset.y * 0.2}px)`,
         }}
       >
-        <Image
-          src="/illustrated/ch02-page/matrimandir-illustrated.jpg"
-          alt="Master architectural hand-drawn illustration of the Matrimandir in Auroville"
-          fill
-          sizes="100vw"
-          className="object-cover"
-          style={{ objectPosition: "center 38%" }}
-          priority
-        />
-      </div>
-
-      {/* =====================================================================
-          LAYER 02: THE REAL PHOTOGRAPHIC SCENE (Radial Light Mask Reveal)
-          Expands smoothly from the golden dome outwards to ramps, lawn, and sky.
-          ===================================================================== */}
-      <div
-        className="absolute inset-0 w-full h-full pointer-events-none transition-transform duration-100 ease-out"
-        style={{
-          opacity: transformPhase > 0 ? 1 : 0,
-          WebkitMaskImage:
-            transformPhase >= 1
-              ? "none"
-              : transformPhase > 0
-              ? `radial-gradient(circle at 50.5% 42%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) ${maskRadius}%, rgba(0,0,0,0) ${
-                  maskRadius + maskFeather
-                }%)`
-              : "none",
-          maskImage:
-            transformPhase >= 1
-              ? "none"
-              : transformPhase > 0
-              ? `radial-gradient(circle at 50.5% 42%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) ${maskRadius}%, rgba(0,0,0,0) ${
-                  maskRadius + maskFeather
-                }%)`
-              : "none",
-        }}
-      >
-        <div
-          className="relative w-full h-full"
-          style={{
-            transform: `translateY(-0.8%) scale(${photoPushIn}) translate(${pointerOffset.x * 0.2}px, ${
-              pointerOffset.y * 0.15
-            }px)`,
-          }}
-        >
+        {/* LAYER 01: ARCHITECTURAL PENCIL SKETCH (Warm ivory drafting paper + graphite linework) */}
+        <div className="absolute inset-0 w-full h-full">
           <Image
-            src="/photos/matrimandir-real.jpg"
-            alt="The real Matrimandir in sunlit architectural photography, Auroville"
+            src="/matrimandir-sequence/01-sketch-aligned.jpg"
+            alt="Master architectural pencil sketch and drafting study of the Matrimandir in Auroville"
             fill
             sizes="100vw"
-            className="object-cover"
-            style={{ objectPosition: "center 45%" }}
+            className="object-cover object-center"
             priority
           />
         </div>
-      </div>
 
-      {/* =====================================================================
-          LAYER 03: ARCHITECTURAL LINEWORK OVERLAY (Lingering Ink Drawing)
-          Ensures the hand-drawn strokes remain tangible over the emerging photo
-          before melting cleanly away.
-          ===================================================================== */}
-      {lineworkOpacity > 0.01 && (
+        {/* LAYER 02: COLORED WATERCOLOR ILLUSTRATION (Washes into place over sketch) */}
         <div
-          className="absolute inset-0 w-full h-full pointer-events-none transition-transform duration-100 ease-out"
-          style={{
-            opacity: lineworkOpacity,
-            mixBlendMode: "multiply",
-            transform: `translate(${pointerOffset.x * 0.4}px, ${pointerOffset.y * 0.3}px)`,
-          }}
+          className="absolute inset-0 w-full h-full transition-opacity duration-75"
+          style={{ opacity: colorWashOpacity }}
         >
-          <div
-            className="w-full h-full"
-            style={{
-              backgroundImage: "url('/illustrated/ch02-page/matrimandir-illustrated.jpg')",
-              backgroundSize: "cover",
-              backgroundPosition: "center 38%",
-              filter: "contrast(180%) grayscale(100%)",
-            }}
+          <Image
+            src="/matrimandir-sequence/02-color-aligned.jpg"
+            alt="Master architectural hand-drawn watercolor illustration of the Matrimandir in Auroville"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            priority
           />
         </div>
-      )}
+
+        {/* LAYER 03: REAL PHOTOGRAPH (Sunlit reality revealed via radial expansion from dome center) */}
+        <div
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{
+            opacity: transformPhase > 0 ? 1 : 0,
+            WebkitMaskImage:
+              transformPhase >= 1
+                ? "none"
+                : transformPhase > 0
+                ? `radial-gradient(circle at 50% 52.1%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) ${maskRadius}%, rgba(0,0,0,0) ${
+                    maskRadius + maskFeather
+                  }%)`
+                : "none",
+            maskImage:
+              transformPhase >= 1
+                ? "none"
+                : transformPhase > 0
+                ? `radial-gradient(circle at 50% 52.1%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) ${maskRadius}%, rgba(0,0,0,0) ${
+                    maskRadius + maskFeather
+                  }%)`
+                : "none",
+          }}
+        >
+          <Image
+            src="/matrimandir-sequence/03-photo-aligned.jpg"
+            alt="The real Matrimandir in sunlit architectural photography, Auroville"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
+            priority
+          />
+        </div>
+
+        {/* LAYER 04: ARCHITECTURAL LINEWORK OVERLAY (Tactile ink lines during transformation) */}
+        {lineworkOpacity > 0.01 && (
+          <div
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{
+              opacity: lineworkOpacity,
+              mixBlendMode: "multiply",
+            }}
+          >
+            <Image
+              src="/matrimandir-sequence/01-sketch-aligned.jpg"
+              alt="Architectural linework overlay"
+              fill
+              sizes="100vw"
+              className="object-cover object-center"
+              priority
+            />
+          </div>
+        )}
+      </div>
 
       {/* =====================================================================
           LAYER 04: STORY LINE / GUIDING BASELINE FROM CHAPTER 01
@@ -244,10 +240,10 @@ export default function Chapter02PageOpens({
         onMouseEnter={() => setIsHoveringDome(true)}
         onMouseLeave={() => setIsHoveringDome(false)}
         onClick={() => setActiveDiscovery(activeDiscovery === "dome" ? null : "dome")}
-        className="absolute top-[18%] left-[28%] w-[44vw] max-w-[580px] aspect-square rounded-full cursor-pointer z-25 focus:outline-none"
+        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[38vw] max-w-[520px] aspect-square rounded-full cursor-pointer z-25 focus:outline-none"
       >
         {isHoveringDome && activeDiscovery !== "dome" && (
-          <div className="absolute top-[12%] left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper-light/95 border border-border px-3 py-1 text-[9px] font-mono tracking-widest text-ink uppercase rounded-xs archival-shadow-subtle pointer-events-none transition-opacity duration-200">
+          <div className="absolute top-[10%] left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper-light/95 border border-border px-3 py-1 text-[9px] font-mono tracking-widest text-ink uppercase rounded-xs archival-shadow-subtle pointer-events-none transition-opacity duration-200">
             The Geodesic Sphere · 1,415 Gilded Discs
           </div>
         )}
@@ -261,7 +257,7 @@ export default function Chapter02PageOpens({
         onMouseEnter={() => setIsHoveringLotus(true)}
         onMouseLeave={() => setIsHoveringLotus(false)}
         onClick={() => setActiveDiscovery(activeDiscovery === "lotus" ? null : "lotus")}
-        className="absolute top-[68%] left-[36%] w-[28vw] max-w-[380px] h-[12vh] cursor-pointer z-25 focus:outline-none"
+        className="absolute bottom-[6%] left-1/2 -translate-x-1/2 w-[28vw] max-w-[380px] h-[12vh] cursor-pointer z-25 focus:outline-none"
       >
         {isHoveringLotus && activeDiscovery !== "lotus" && (
           <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper-light/95 border border-border px-3 py-1 text-[9px] font-mono tracking-widest text-ink uppercase rounded-xs archival-shadow-subtle pointer-events-none transition-opacity duration-200">
@@ -393,6 +389,15 @@ export default function Chapter02PageOpens({
               </div>
               <p className="font-serif italic text-sm md:text-base text-ink font-light leading-snug">
                 The golden sphere in sunlit reality—the architectural soul and silent center of Auroville.
+              </p>
+            </div>
+          ) : localProgress < 0.28 ? (
+            <div>
+              <div className="font-mono text-[8px] uppercase tracking-widest text-ink-muted font-semibold mb-0.5">
+                MATRIMANDIR · ELEVATION STUDY · 36M SPHERE
+              </div>
+              <p className="font-serif italic text-sm md:text-base text-ink font-light leading-snug">
+                Hand-drafted architectural study of the golden sphere rising above the red sandstone amphitheater.
               </p>
             </div>
           ) : (
