@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import LivingContourField from "@/components/experience/LivingContourField";
-import StoryPath from "@/components/interactions/StoryPath";
 
 interface EditorialCoverProps {
   progress: number; // Global scroll progress 0.0 - 1.0
@@ -75,30 +74,49 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
     };
   }, []);
 
-  if (!active && progress > 0.24) {
+  if (!active && progress > 0.22) {
     return null;
   }
 
   // ---------------------------------------------------------------------------
-  // SCROLL CHOREOGRAPHY (Strictly based on V5 brief)
-  // 0% – 15%: Completed hero visible. Small pointer interactions active.
-  // 15% – 40%: Typography begins shifting & revealing more architectural drawing.
-  // 40% – 70%: Matrimandir illustration becomes dominant composition.
-  // 70% – 90%: Drawn story line guides attention toward next scene.
-  // 90% – 100%: Architectural artwork becomes visual starting point of Chapter 02.
+  // SCROLL CHOREOGRAPHY (Unified CH01 -> CH02 Single Coordinate Transformation)
+  // 0.000 – 0.025: Approved Hero composition visible at S = 0.42 behind AURO / VILLE.
+  // 0.025 – 0.115: Typography, artisan, banyan tree & intro shift outward cleanly.
+  // 0.045 – 0.205: Matrimandir expands smoothly (S: 0.42 -> 1.00) on the exact 1376x768
+  //                coordinate grid, with detailed Chapter 02 graphite & forest artwork
+  //                emerging radially through a mask around dome center (48.73% 47.66%).
+  // 0.205 – 0.215: Exact 1:1 overlap lock with Chapter 02 starting frame (zero cut/pop).
   // ---------------------------------------------------------------------------
 
-  const typeShift = Math.min(1, Math.max(0, (localProgress - 0.12) / 0.45));
-  const domeFocus = Math.min(1, Math.max(0, (localProgress - 0.25) / 0.55));
-  const pathDraw = Math.min(1, Math.max(0, (localProgress - 0.55) / 0.40));
+  // Stage 1 -> Stage 2: Typography & peripheral elements translate cleanly off-viewport (no grey fade ghosting)
+  const rawTypeShift = Math.min(1, Math.max(0, (progress - 0.02) / 0.075));
+  const typeShift = rawTypeShift * rawTypeShift * (3 - 2 * rawTypeShift);
 
-  // Typography translates outward with intentional geometric clipping
-  const textTranslateX = typeShift * 420;
-  // Typography retains crisp black ink density instead of fading to pale grey
-  const textOpacity = typeShift > 0.8 ? Math.max(0, 1 - (typeShift - 0.8) / 0.2) : 1;
+  // Stage 2 -> Stage 4: Smooth continuous scale expansion S: 0.42 -> 1.00
+  const rawExpand = Math.min(1, Math.max(0, (progress - 0.04) / 0.165));
+  const expandEase = rawExpand * rawExpand * (3 - 2 * rawExpand);
+  const artworkScale = 0.42 + expandEase * 0.58;
 
-  // The central Matrimandir architectural drawing expands to command the viewport
-  const domeScale = 1 + domeFocus * 0.35;
+  // Center compensation so hero study feels horizontally balanced at small scale,
+  // easing to exact 0% offset at S = 1.00 to lock 1:1 onto Chapter 02
+  const centerShiftX = (1 - expandEase) * 0.9;
+
+  // Stage 3: Radial masked emergence of detailed Chapter 02 ink illustration
+  // Stage 3a (0.09 -> 0.15): detail emerges strictly inside dome/pillar/ramp radius (~38%)
+  // while scaling up, avoiding any top/bottom canvas boundary cut on desktop or mobile.
+  // Stage 3b (0.15 -> 0.205): as canvas approaches full-bleed (scale >= 0.85 -> 1.00),
+  // mask opens across forest canopy, tree branch, clouds & grass seamlessly.
+  const detailPhase = Math.min(1, Math.max(0, (progress - 0.085) / 0.12));
+  const detailEase = Math.pow(detailPhase, 1.85);
+  const detailMaskInner = -14 + detailEase * 122; // -14% -> 108%
+  const detailMaskFeather = 22;
+
+  // Soft vertical edge feather ONLY while scale < 0.96 so outer clouds/grass never show a horizontal seam
+  const needsEdgeFeather = artworkScale < 0.97;
+
+  // Typography translates completely clear of viewport width with crisp ink density (clip instead of grey wash)
+  const textTranslateVw = typeShift * 98;
+  const textOpacity = rawTypeShift >= 0.98 ? 0 : 1;
 
   // Banyan subtle organic displacement (2–4px) based on pointer proximity
   const banyanSwayX = isNearBanyan ? pointer.normX * 4 : 0;
@@ -113,31 +131,31 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
       className="absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden pointer-events-none select-none bg-paper"
       style={{
         zIndex: 10,
-        visibility: progress <= 0.24 ? "visible" : "hidden",
+        visibility: progress <= 0.215 ? "visible" : "hidden",
       }}
     >
       {/* =====================================================================
           21ST MCP LIVING CONTOUR FIELD (Subtle Graphite/Terracotta Drafting)
-          Restrained, faint lines concentrated in negative space areas
+          Fades smoothly away as the full detailed CH02 landscape emerges.
           ===================================================================== */}
       <LivingContourField
         variant="hero-draft"
-        active={active}
+        active={active && progress < 0.21}
         scrollProgress={localProgress}
         density={0.55}
-        opacity={0.35 * (1 - domeFocus * 0.4)}
+        opacity={0.35 * (1 - detailPhase)}
       />
 
       {/* =====================================================================
           MAIN MONUMENTAL DISPLAY TYPOGRAPHY (AURO / VILLE)
-          Massive Archivo Black typography layered with architectural drawing
+          Massive Archivo Black typography layered over the central drawing
           ===================================================================== */}
       <div className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 my-auto flex flex-col justify-center pt-14">
-        {/* Top Headline: AURO */}
+        {/* Top Headline: Pure bold Archivo Black AURO */}
         <div
-          className="w-full flex items-baseline justify-start transition-transform duration-75 ease-out"
+          className="w-full flex items-baseline justify-start"
           style={{
-            transform: `translateX(-${textTranslateX}px)`,
+            transform: `translateX(-${textTranslateVw}vw)`,
             opacity: textOpacity,
           }}
         >
@@ -148,9 +166,9 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
 
         {/* Bottom Headline: VILLE */}
         <div
-          className="w-full flex items-baseline justify-end transition-transform duration-75 ease-out -mt-4 md:-mt-8"
+          className="w-full flex items-baseline justify-end -mt-4 md:-mt-8"
           style={{
-            transform: `translateX(${textTranslateX}px)`,
+            transform: `translateX(${textTranslateVw}vw)`,
             opacity: textOpacity,
           }}
         >
@@ -165,10 +183,11 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
           Features organic leaf sway (2–4px displacement) on pointer proximity
           ===================================================================== */}
       <div
-        className="hidden md:block absolute right-[-4vw] md:right-[-2vw] bottom-[2vh] md:bottom-[4vh] w-[55vw] md:w-[42vw] max-w-[700px] z-15 pointer-events-none transition-all duration-300 ease-out"
+        className="hidden md:block absolute right-[-4vw] md:right-[-2vw] bottom-[2vh] md:bottom-[4vh] w-[55vw] md:w-[42vw] max-w-[700px] pointer-events-none"
         style={{
-          opacity: Math.max(0, 1 - typeShift * 1.2),
-          transform: `translate(${banyanSwayX + typeShift * 120}px, ${banyanSwayY - typeShift * 20}px)`,
+          zIndex: 15,
+          opacity: Math.max(0, 1 - typeShift * 1.25),
+          transform: `translate(${banyanSwayX + typeShift * 140}px, ${banyanSwayY - typeShift * 20}px)`,
         }}
       >
         <Image
@@ -186,9 +205,10 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
           With subtle throwing swirl detail on pointer proximity
           ===================================================================== */}
       <div
-        className="hidden md:block absolute left-[5vw] md:left-[7vw] bottom-[24vh] md:bottom-[26vh] w-[28vw] md:w-[14vw] max-w-[210px] z-15 transition-all duration-300 ease-out"
+        className="hidden md:block absolute left-[5vw] md:left-[7vw] bottom-[24vh] md:bottom-[26vh] w-[28vw] md:w-[14vw] max-w-[210px]"
         style={{
-          opacity: Math.max(0, 1 - typeShift * 1.2),
+          zIndex: 15,
+          opacity: Math.max(0, 1 - typeShift * 1.25),
           transform: `translate(${potterParallaxX}px, ${potterParallaxY}px)`,
         }}
       >
@@ -217,84 +237,108 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
       </div>
 
       {/* =====================================================================
-          CENTRAL ARCHITECTURAL STUDY DRAWING (MATRIMANDIR ELEVATION)
-          Positioned in geometric center; scales monumentally on scroll so it NEVER
-          sits in a dead zone or empty vacuum hold.
+          UNIFIED PERSISTENT MATRIMANDIR CANVAS (Exact 1376:768 Aspect Frame)
+          Maintains 1:1 geometric identity across all viewports (no rectangular crop
+          edges during scaling). At S = 1.00 this matches Chapter 02's
+          object-cover object-center canvas down to 0.0px.
           ===================================================================== */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-25 transition-transform duration-100 flex items-center justify-center pointer-events-none"
+        className="absolute top-1/2 left-1/2 pointer-events-none"
         style={{
-          width: `clamp(340px, 44vw, 680px)`,
-          height: `clamp(320px, 42vh, 620px)`,
-          transform: `translate(-50%, -50%) scale(${domeScale})`,
+          zIndex: 12,
+          width: "max(100vw, calc(100vh * 1376 / 768))",
+          height: "max(100vh, calc(100vw * 768 / 1376))",
+          transformOrigin: "48.73% 47.66%",
+          transform: `translate(-50%, -50%) translateX(${centerShiftX}%) scale(${artworkScale})`,
         }}
       >
-        <div className="relative w-full h-full flex items-center justify-center">
+        {/* Base Layer: Clean Luminous Architectural Elevation Study (isolated silhouette on transparent alpha) */}
+        <div className="absolute inset-0 w-full h-full">
           <Image
-            src="/art/architecture/matrimandir-study.webp"
-            alt="Original architectural elevation study of the Matrimandir dome"
+            src="/matrimandir-sequence/00-hero-study-aligned.png"
+            alt="Architectural elevation study drawing of the Matrimandir dome and ramps"
             fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-contain p-2 md:p-4"
+            sizes="100vw"
+            className="object-cover object-center"
             priority
           />
+        </div>
 
-          {/* Graphite Hatching Reveal Layer (Interaction 03) */}
+        {/* Graphite Hatching Accent Layer on Hover over Dome (Interaction 03) */}
+        {detailPhase < 0.5 && (
           <div
-            className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+            className="absolute pointer-events-none transition-opacity duration-500"
             style={{
-              opacity: isNearDome ? 0.35 : 0.05,
+              left: "48.73%",
+              top: "47.66%",
+              width: "48%",
+              height: "70%",
+              transform: "translate(-50%, -50%)",
+              opacity: (isNearDome ? 0.32 : 0.04) * (1 - detailPhase * 2),
             }}
           >
             <svg viewBox="0 0 600 500" className="w-full h-full" fill="none">
-              {/* Fine construction drafting arcs */}
-              <circle
-                cx="300"
-                cy="250"
-                r="160"
-                stroke="#191917"
-                strokeWidth="0.75"
-                strokeDasharray="4 4"
-                opacity="0.5"
-              />
-              <circle
-                cx="300"
-                cy="250"
-                r="190"
-                stroke="#191917"
-                strokeWidth="0.5"
-                strokeDasharray="2 4"
-                opacity="0.35"
-              />
-              {/* Radial drafting rays */}
-              <line x1="140" y1="250" x2="460" y2="250" stroke="#191917" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
-              <line x1="300" y1="90" x2="300" y2="410" stroke="#191917" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
+              <circle cx="300" cy="250" r="195" stroke="#191917" strokeWidth="0.75" strokeDasharray="4 4" opacity="0.5" />
+              <circle cx="300" cy="250" r="225" stroke="#191917" strokeWidth="0.5" strokeDasharray="2 4" opacity="0.35" />
+              <line x1="100" y1="250" x2="500" y2="250" stroke="#191917" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
+              <line x1="300" y1="50" x2="300" y2="450" stroke="#191917" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.3" />
             </svg>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* =====================================================================
-          CONTINUOUS STORY CONTOUR LINE (Connects directly into Chapter 02)
-          Pencil line originates from architecture and unrolls smoothly to the right
-          ===================================================================== */}
-      <div
-        className="absolute top-1/2 left-1/2 right-0 -translate-y-1/2 z-20 pointer-events-none transition-opacity duration-300"
-        style={{
-          opacity: pathDraw,
-        }}
-      >
-        <StoryPath progress={pathDraw} variant="hero-to-fold" />
+        {/* Masked Detail Emergence Layer: Exact Chapter 02 B&W Detailed Illustration */}
+        {/* Radiates cleanly outward from dome center so discs, pillars, ramps & landscape match 1:1 */}
+        {detailPhase > 0 && (
+          <div
+            className="absolute inset-0 w-full h-full"
+            style={{
+              WebkitMaskImage: needsEdgeFeather
+                ? `radial-gradient(circle at 48.73% 47.66%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) ${Math.max(
+                    0,
+                    detailMaskInner
+                  )}%, rgba(0,0,0,0) ${Math.max(0, detailMaskInner + detailMaskFeather)}%)`
+                : "none",
+              maskImage: needsEdgeFeather
+                ? `radial-gradient(circle at 48.73% 47.66%, rgba(0,0,0,1) 0%, rgba(0,0,0,1) ${Math.max(
+                    0,
+                    detailMaskInner
+                  )}%, rgba(0,0,0,0) ${Math.max(0, detailMaskInner + detailMaskFeather)}%)`
+                : "none",
+            }}
+          >
+            {/* Inner vertical soft-edge envelope while zoomed (< 0.97) prevents top/bottom foliage seam on narrow screens */}
+            <div
+              className="relative w-full h-full"
+              style={{
+                WebkitMaskImage: needsEdgeFeather
+                  ? "linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)"
+                  : "none",
+                maskImage: needsEdgeFeather
+                  ? "linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)"
+                  : "none",
+              }}
+            >
+              <Image
+                src="/matrimandir-sequence/01-sketch-aligned.jpg"
+                alt="Detailed architectural graphite illustration of Matrimandir and landscape"
+                fill
+                sizes="100vw"
+                className="object-cover object-center"
+                priority
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* =====================================================================
           BOTTOM EDITORIAL STATEMENT (Clean, restrained, zero telemetry)
           ===================================================================== */}
       <div
-        className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 pb-10 md:pb-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 transition-transform duration-300"
+        className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 pb-10 md:pb-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-4"
         style={{
-          opacity: textOpacity,
-          transform: `translateY(${typeShift * 20}px)`,
+          opacity: Math.max(0, 1 - typeShift * 1.4),
+          transform: `translateY(${typeShift * 28}px)`,
         }}
       >
         <div className="max-w-md">

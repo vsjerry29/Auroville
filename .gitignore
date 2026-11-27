@@ -24,7 +24,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env*
+!.env.example
 
 # vercel
 .vercel
@@ -32,3 +33,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local verification screenshots and one-off QA scripts
+/docs/v5/screenshots/
+/docs/v6/
+/scripts/verify_*.js
+/scripts/generate_hero_study.js
+/scripts/inspect_ch01_to_ch02.js
+/scripts/measure_monument_poly.js
+/scripts/render_storyboard_ch05_08.js

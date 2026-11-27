@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import LivingContourField from "@/components/experience/LivingContourField";
+import { IconAction, InlineLabel } from "@/components/ui/EditorialControls";
 import { X } from "lucide-react";
 
 interface Chapter02PageOpensProps {
@@ -56,21 +57,27 @@ export default function Chapter02PageOpens({
     };
   }, []);
 
-  if (!active && (progress < 0.19 || progress > 0.49)) {
+  if (!active && (progress < 0.17 || progress > 0.49)) {
     return null;
   }
 
   // ---------------------------------------------------------------------------
-  // SCROLL CHOREOGRAPHY (Strictly matching V5 specification)
+  // SCROLL CHOREOGRAPHY (Strictly preserving approved CH02 sketch -> color -> photo sequence)
   //
-  // Phase A (0.00 – 0.20 local): Architectural pencil sketch with drafting arcs
-  // Phase B (0.20 – 0.38 local): Watercolor wash smoothly glazes into colored illustration
-  // Phase C (0.38 – 0.75 local): Radial photograph reveal from dome center (50% 52.1%)
-  // Phase D (0.75 – 1.00 local): Full photographic hold in stable, beautifully framed composition
+  // Stage 4 handoff (0.205): Chapter 01 has scaled to S = 1.00 and revealed 100% of
+  // 01-sketch-aligned.jpg. Chapter 02 takes over cleanly with zero crossfade/cut!
+  // Phase A (0.00 – 0.20 local): Expanded black-and-white detailed architectural illustration
+  // Phase B (0.16 – 0.36 local): Watercolor wash smoothly glazes into colored illustration
+  // Phase C (0.36 – 0.74 local): Radial photograph reveal from dome center (50% 52.1%)
+  // Phase D (0.74 – 0.90 local): Full photographic hold in stable, beautifully framed composition
   // ---------------------------------------------------------------------------
 
-  // Scene entry fade-in from Chapter 01
-  const sceneOpacity = Math.min(1, Math.max(0, localProgress / 0.08));
+  // Clean zero-crossfade handoff once Chapter 01 finishes expanding into exact CH02 start frame (0.205)
+  const isHandoffReady = progress >= 0.205;
+  const sceneOpacity = isHandoffReady ? 1 : 0;
+
+  // Gentle ramp-in after 0.205 so auxiliary UI/parallax never pop at handoff boundary
+  const ch02PostHandoffRamp = Math.min(1, Math.max(0, (progress - 0.205) / 0.03));
 
   // Phase B: Watercolor wash opacity over pencil sketch
   const colorWashOpacity = Math.min(1, Math.max(0, (localProgress - 0.16) / 0.20));
@@ -88,9 +95,9 @@ export default function Chapter02PageOpens({
     ? Math.sin(transformPhase * Math.PI) * 0.32
     : 0;
 
-  // Statement caption enter & exit
+  // Statement caption enter & exit (ramps gently after 0.205 handoff)
   const isPhotographicHold = localProgress >= 0.74;
-  const statementEnter = Math.min(1, Math.max(0, (localProgress - 0.01) / 0.08));
+  const statementEnter = Math.min(1, Math.max(0, (progress - 0.205) / 0.012));
   const statementExit = Math.min(1, Math.max(0, (localProgress - 0.90) / 0.10));
   const statementOpacity = statementEnter * (1 - statementExit);
 
@@ -99,21 +106,23 @@ export default function Chapter02PageOpens({
 
   return (
     <div
-      className="absolute inset-0 w-full h-full overflow-hidden select-none bg-paper pointer-events-auto"
+      className={`absolute inset-0 w-full h-full overflow-hidden select-none bg-paper ${
+        isHandoffReady ? "pointer-events-auto" : "pointer-events-none"
+      }`}
       style={{
         zIndex: 15,
         opacity: sceneOpacity,
-        visibility: progress >= 0.19 && progress <= 0.49 ? "visible" : "hidden",
+        visibility: isHandoffReady && progress <= 0.49 ? "visible" : "hidden",
       }}
     >
       {/* 21ST MCP LIVING CONTOUR FIELD (Subtle Topographic Drafting in Early Phases) */}
       {transformPhase < 0.8 && (
         <LivingContourField
           variant="landscape-topography"
-          active={active}
+          active={active && isHandoffReady}
           scrollProgress={localProgress}
           density={0.45}
-          opacity={0.25 * (1 - transformPhase)}
+          opacity={0.25 * ch02PostHandoffRamp * (1 - transformPhase)}
         />
       )}
 
@@ -121,11 +130,14 @@ export default function Chapter02PageOpens({
           MASTER ALIGNED COMPOSITION WRAPPER
           All three layers share the exact same container, position, and pointer physics
           ensuring 100% pixel-perfect congruence across viewports with zero ghosting.
+          Pointer parallax ramps cleanly from 0 after handoff so scale=1 frame matches 1:1.
           ===================================================================== */}
       <div
-        className="absolute inset-0 w-full h-full transition-transform duration-100 ease-out"
+        className="absolute inset-0 w-full h-full"
         style={{
-          transform: `translate(${pointerOffset.x * 0.25}px, ${pointerOffset.y * 0.2}px)`,
+          transform: `translate(${pointerOffset.x * 0.25 * ch02PostHandoffRamp}px, ${
+            pointerOffset.y * 0.2 * ch02PostHandoffRamp
+          }px)`,
         }}
       >
         {/* LAYER 01: ARCHITECTURAL PENCIL SKETCH (Warm ivory drafting paper + graphite linework) */}
@@ -142,7 +154,7 @@ export default function Chapter02PageOpens({
 
         {/* LAYER 02: COLORED WATERCOLOR ILLUSTRATION (Washes into place over sketch) */}
         <div
-          className="absolute inset-0 w-full h-full transition-opacity duration-75"
+          className="absolute inset-0 w-full h-full"
           style={{ opacity: colorWashOpacity }}
         >
           <Image
@@ -221,7 +233,7 @@ export default function Chapter02PageOpens({
               stroke="#5A422D"
               strokeWidth="1.2"
               strokeDasharray="4 4"
-              opacity={Math.min(0.6, (1 - localProgress) * 0.8)}
+              opacity={Math.min(0.6, (1 - localProgress) * 0.8) * ch02PostHandoffRamp}
             />
           </svg>
         </div>
@@ -240,11 +252,11 @@ export default function Chapter02PageOpens({
         onMouseEnter={() => setIsHoveringDome(true)}
         onMouseLeave={() => setIsHoveringDome(false)}
         onClick={() => setActiveDiscovery(activeDiscovery === "dome" ? null : "dome")}
-        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[38vw] max-w-[520px] aspect-square rounded-full cursor-pointer z-25 focus:outline-none"
+        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[38vw] max-w-[520px] aspect-square rounded-full cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
       >
         {isHoveringDome && activeDiscovery !== "dome" && (
-          <div className="absolute top-[10%] left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper-light/95 border border-border px-3 py-1 text-[9px] font-mono tracking-widest text-ink uppercase rounded-xs archival-shadow-subtle pointer-events-none transition-opacity duration-200">
-            The Geodesic Sphere · 1,415 Gilded Discs
+          <div className="absolute top-[10%] left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
+            <InlineLabel accent="gold">The Geodesic Sphere · 1,415 Gilded Discs</InlineLabel>
           </div>
         )}
       </div>
@@ -257,11 +269,11 @@ export default function Chapter02PageOpens({
         onMouseEnter={() => setIsHoveringLotus(true)}
         onMouseLeave={() => setIsHoveringLotus(false)}
         onClick={() => setActiveDiscovery(activeDiscovery === "lotus" ? null : "lotus")}
-        className="absolute bottom-[6%] left-1/2 -translate-x-1/2 w-[28vw] max-w-[380px] h-[12vh] cursor-pointer z-25 focus:outline-none"
+        className="absolute bottom-[6%] left-1/2 -translate-x-1/2 w-[28vw] max-w-[380px] h-[12vh] cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
       >
         {isHoveringLotus && activeDiscovery !== "lotus" && (
-          <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper-light/95 border border-border px-3 py-1 text-[9px] font-mono tracking-widest text-ink uppercase rounded-xs archival-shadow-subtle pointer-events-none transition-opacity duration-200">
-            Lotus Amphitheater · Marble Floor
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
+            <InlineLabel accent="terracotta">Lotus Amphitheater · Marble Floor</InlineLabel>
           </div>
         )}
       </div>
@@ -274,35 +286,29 @@ export default function Chapter02PageOpens({
         onMouseEnter={() => setIsHoveringCanopy(true)}
         onMouseLeave={() => setIsHoveringCanopy(false)}
         onClick={() => setActiveDiscovery(activeDiscovery === "canopy" ? null : "canopy")}
-        className="absolute top-0 left-0 w-[28vw] max-w-[360px] h-[28vh] cursor-pointer z-25 focus:outline-none"
+        className="absolute top-0 left-0 w-[28vw] max-w-[360px] h-[28vh] cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
       >
         {isHoveringCanopy && activeDiscovery !== "canopy" && (
-          <div className="absolute bottom-2 left-12 whitespace-nowrap bg-paper-light/95 border border-border px-3 py-1 text-[9px] font-mono tracking-widest text-ink uppercase rounded-xs archival-shadow-subtle pointer-events-none transition-opacity duration-200">
-            Indigenous Canopy · Ficus & Neem
+          <div className="absolute bottom-2 left-12 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
+            <InlineLabel accent="forest">Indigenous Canopy · Ficus &amp; Neem</InlineLabel>
           </div>
         )}
       </div>
 
       {/* =====================================================================
-          INTEGRATED DISCOVERY DIALOGS (Clean Archival Annotation Cards)
+          INTEGRATED DISCOVERY DIALOGS (Restrained Archival Marginalia Notes)
           ===================================================================== */}
       {activeDiscovery === "dome" && (
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute z-40 top-20 right-8 md:right-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border archival-shadow p-5 animate-fade-in rounded-xs"
+          className="absolute z-40 top-20 right-8 md:right-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border p-5 animate-fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-border/80">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-gold-dark font-semibold">
-              PEACE AREA · 36M SPHERE
-            </span>
-            <button
-              onClick={() => setActiveDiscovery(null)}
-              aria-label="Close discovery"
-              className="p-1 text-ink-muted hover:text-ink cursor-pointer"
-            >
-              <X size={13} />
-            </button>
+            <InlineLabel accent="gold">Peace Area · 36m Sphere</InlineLabel>
+            <IconAction onClick={() => setActiveDiscovery(null)} ariaLabel="Close discovery">
+              <X size={14} />
+            </IconAction>
           </div>
           <h4 className="font-serif italic text-xl text-ink font-light mt-2.5">
             The Geodesic Sphere
@@ -317,19 +323,13 @@ export default function Chapter02PageOpens({
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute z-40 bottom-24 right-8 md:right-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border archival-shadow p-5 animate-fade-in rounded-xs"
+          className="absolute z-40 bottom-24 right-8 md:right-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border p-5 animate-fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-border/80">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-terracotta font-semibold">
-              AMPHITHEATER PLAZA
-            </span>
-            <button
-              onClick={() => setActiveDiscovery(null)}
-              aria-label="Close discovery"
-              className="p-1 text-ink-muted hover:text-ink cursor-pointer"
-            >
-              <X size={13} />
-            </button>
+            <InlineLabel accent="terracotta">Amphitheater Plaza</InlineLabel>
+            <IconAction onClick={() => setActiveDiscovery(null)} ariaLabel="Close discovery">
+              <X size={14} />
+            </IconAction>
           </div>
           <h4 className="font-serif italic text-xl text-ink font-light mt-2.5">
             White Marble Lotus
@@ -344,19 +344,13 @@ export default function Chapter02PageOpens({
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute z-40 top-24 left-8 md:left-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border archival-shadow p-5 animate-fade-in rounded-xs"
+          className="absolute z-40 top-24 left-8 md:left-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border p-5 animate-fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-border/80">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-forest font-semibold">
-              ECOLOGICAL REGENERATION
-            </span>
-            <button
-              onClick={() => setActiveDiscovery(null)}
-              aria-label="Close discovery"
-              className="p-1 text-ink-muted hover:text-ink cursor-pointer"
-            >
-              <X size={13} />
-            </button>
+            <InlineLabel accent="forest">Ecological Regeneration</InlineLabel>
+            <IconAction onClick={() => setActiveDiscovery(null)} ariaLabel="Close discovery">
+              <X size={14} />
+            </IconAction>
           </div>
           <h4 className="font-serif italic text-xl text-ink font-light mt-2.5">
             The Green Belt
@@ -368,8 +362,7 @@ export default function Chapter02PageOpens({
       )}
 
       {/* =====================================================================
-          QUIET EDITORIAL STATEMENT (Pinned in Margin, Zero Artwork Blockage)
-          Switches context gracefully from Phase A/B to Phase D.
+          QUIET EDITORIAL STATEMENT (Unboxed Paper Underlay, Zero Card Chrome)
           ===================================================================== */}
       <div
         className="absolute z-30 left-6 md:left-12 bottom-6 md:bottom-8 max-w-lg pointer-events-none transition-all duration-500"
@@ -378,10 +371,7 @@ export default function Chapter02PageOpens({
           transform: `translateY(${(1 - statementEnter) * 10}px)`,
         }}
       >
-        <div
-          className="px-4 py-2.5 border border-[#DFD9CC] rounded-xs archival-shadow-subtle inline-block"
-          style={{ backgroundColor: "rgba(252, 250, 246, 0.96)" }}
-        >
+        <div className="border-l border-terracotta/55 pl-3.5 py-1 bg-paper/92 backdrop-blur-[2px] inline-block">
           {isPhotographicHold ? (
             <div>
               <div className="font-mono text-[8px] uppercase tracking-widest text-gold-dark font-semibold mb-0.5">

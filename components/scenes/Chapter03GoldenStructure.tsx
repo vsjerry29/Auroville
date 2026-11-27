@@ -1,346 +1,511 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useRef, useState, useLayoutEffect, useEffect } from "react";
 import Image from "next/image";
-import LayerComparison from "@/components/interactions/LayerComparison";
+import gsap from "gsap";
 import LivingContourField from "@/components/experience/LivingContourField";
-import { SlidersHorizontal, Eye, Compass, Sparkles } from "lucide-react";
 
 interface Chapter03GoldenStructureProps {
-  progress: number; // Global scroll progress 0.0 - 1.0
+  progress: number; // Stage progress 0.00 - 0.73
   active: boolean;
+  exitProgress?: number; // 0.0 -> 1.0 as Chapter 04 scrolls vertically into view
 }
+
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const smooth = (edge0: number, edge1: number, x: number) => {
+  const t = clamp01((x - edge0) / (edge1 - edge0));
+  return t * t * (3 - 2 * t);
+};
 
 export default function Chapter03GoldenStructure({
   progress,
   active,
+  exitProgress = 0,
 }: Chapter03GoldenStructureProps) {
-  // Normalize progress for Chapter 03 (0.45 to 0.73)
-  const localProgress = Math.min(1, Math.max(0, (progress - 0.45) / 0.28));
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  // Interactive modes
-  const [outlineMode, setOutlineMode] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-  const [activeCallout, setActiveCallout] = useState<string | null>(null);
+  const [maxTravel, setMaxTravel] = useState(0);
 
-  // Close modals/callouts on ESC
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setActiveCallout(null);
-        setShowComparison(false);
-      }
+  // Measure real track width & viewport width responsively
+  useLayoutEffect(() => {
+    const updateMeasurements = () => {
+      if (!viewportRef.current || !trackRef.current) return;
+      const vw = viewportRef.current.clientWidth;
+      const tw = trackRef.current.scrollWidth;
+      setMaxTravel(Math.max(0, tw - vw));
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
-  if (!active && (progress < 0.44 || progress > 0.75)) {
+    updateMeasurements();
+
+    let ro: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined" && trackRef.current && viewportRef.current) {
+      ro = new ResizeObserver(updateMeasurements);
+      ro.observe(viewportRef.current);
+      ro.observe(trackRef.current);
+    }
+    window.addEventListener("resize", updateMeasurements);
+    return () => {
+      window.removeEventListener("resize", updateMeasurements);
+      ro?.disconnect();
+    };
+  }, [active, progress >= 0.43]);
+
+  // Normalized Chapter 03 progress (0.45 -> 0.73)
+  const ch03Local = clamp01((progress - 0.45) / 0.28);
+
+  // ---------------------------------------------------------------------------
+  // THREE-DWELL PIECEWISE GLIDE TIMELINE (Derived directly from master progress)
+  // Enables each story's dedicated image-opening choreography to unfold IN VIEW:
+  //   0.00 -> 0.24 : Hold at Story 01 (x = 0) while 01/ composition opens & settles
+  //   0.24 -> 0.40 : Smoothly glide to Story 02 center (0.00 -> 0.49)
+  //   0.40 -> 0.58 : Slow editorial dwell at Story 02 (0.49 -> 0.51) while golden discs open
+  //   0.58 -> 0.76 : Smoothly glide to Story 03 center (0.51 -> 1.00)
+  //   0.76 -> 1.00 : Track completely stopped (1.00) while Realized opens & rests
+  // ---------------------------------------------------------------------------
+  const glide01To02 = smooth(0.24, 0.40, ch03Local) * 0.49;
+  const dwell02 = smooth(0.40, 0.58, ch03Local) * 0.02;
+  const glide02To03 = smooth(0.58, 0.76, ch03Local) * 0.49;
+  const mainGlide = clamp01(glide01To02 + dwell02 + glide02To03);
+
+  // Deterministic GSAP transform strictly synced to measured track length
+  useEffect(() => {
+    if (!trackRef.current || maxTravel <= 0) return;
+    gsap.set(trackRef.current, {
+      x: -mainGlide * maxTravel,
+      force3D: true,
+    });
+  }, [mainGlide, maxTravel]);
+
+  if (!active && progress < 0.43) {
     return null;
   }
 
+  // Clean entrance fade from Chapter 02; NO artificial opacity fade-out on Chapter 04 handoff
+  // so Chapter 03 remains crisp until it scrolls upward off the viewport cleanly.
+  const sceneOpacity = clamp01((progress - 0.442) / 0.016);
+
   // ---------------------------------------------------------------------------
-  // SCROLL CHOREOGRAPHY (Continuous Evolving Drawing)
-  // State 1 (Unbuilt Geometry): localProgress < 0.38
-  // State 2 (Built by Hands):   localProgress >= 0.38 && localProgress < 0.70
-  // State 3 (Golden Detail):    localProgress >= 0.70
-  // Continuous Handoff to CH04: localProgress >= 0.88
+  // STORY 01 / IMAGINED — Dedicated Entrance Sequence (ch03Local 0.00 -> 0.22)
   // ---------------------------------------------------------------------------
+  const sup01Graphite = smooth(0.0, 0.1, ch03Local);
+  const sup01Galaxy = smooth(0.03, 0.13, ch03Local);
+  const open01 = smooth(0.04, 0.19, ch03Local);
+  const clip01L = (1 - open01) * 68; // Expanding horizontal + vertical aperture
+  const clip01V = (1 - open01) * 10;
+  const pan01X = (1 - open01) * -3.5; // Synchronized crop movement inside natural aspect
+  const scale01 = 1.18 - open01 * 0.1;
 
-  const activePhase = localProgress < 0.38 ? 1 : localProgress < 0.70 ? 2 : 3;
+  // ---------------------------------------------------------------------------
+  // STORY 02 / MADE — Staged Support & Dominant Slit-to-Spread Reveal (0.27 -> 0.56)
+  // ---------------------------------------------------------------------------
+  const open02Work = smooth(0.28, 0.42, ch03Local); // Workshop artisans enter first
+  const open02Draft = smooth(0.36, 0.49, ch03Local); // Drafting figure staggers onto upper-right corner
+  const open02Dom = smooth(0.35, 0.55, ch03Local); // Golden geodesic discs unfold leftward in view
+  const clip02L = (1 - open02Dom) * 74; // Narrow vertical right-ribbon -> full editorial frame
+  const clip02V = (1 - open02Dom) * 6;
+  const pan02X = (1 - open02Dom) * 4.5;
+  const scale02 = 1.24 - open02Dom * 0.12; // >= 1.12 settled scale cleanly crops top/bottom raw scan rims
 
-  // Visual Drawing Weights (for smooth artwork cross-dissolve)
-  const p1Weight = Math.max(0, 1 - Math.min(1, Math.max(0, (localProgress - 0.30) / 0.12)));
-  const p2Enter = Math.min(1, Math.max(0, (localProgress - 0.30) / 0.12));
-  const p2Exit = Math.min(1, Math.max(0, (localProgress - 0.66) / 0.10));
-  const p2Weight = p2Enter * (1 - p2Exit);
-  const p3Weight = Math.min(1, Math.max(0, (localProgress - 0.66) / 0.10));
-
-  // Continuous handoff to Chapter 04
-  const handoffCH04 = Math.min(1, Math.max(0, (localProgress - 0.88) / 0.12));
+  // ---------------------------------------------------------------------------
+  // STORY 03 / REALIZED — Architectural Study Introduces Evergreen Panorama (0.61 -> 0.90)
+  // ---------------------------------------------------------------------------
+  const open03Courtyard = smooth(0.61, 0.74, ch03Local); // Completed sanctuary & lotus first
+  const open03Study = smooth(0.66, 0.78, ch03Local); // Smaller overlapping study card staggers second
+  const open03Dom = smooth(0.72, 0.89, ch03Local); // Dominant evergreen panorama expands last & holds
+  const clip03L = (1 - open03Dom) * 76;
+  const clip03V = (1 - open03Dom) * 6;
+  const pan03X = (1 - open03Dom) * 4.5;
+  const scale03 = 1.15 - open03Dom * 0.12;
 
   return (
     <div
-      className="absolute inset-0 w-full h-full overflow-hidden select-none bg-paper text-ink transition-opacity duration-300"
+      ref={viewportRef}
+      className="absolute inset-0 w-full h-full overflow-hidden select-none bg-paper text-ink"
       style={{
         zIndex: 20,
-        visibility: progress >= 0.44 && progress <= 0.75 ? "visible" : "hidden",
-        pointerEvents: progress >= 0.45 && progress <= 0.73 ? "auto" : "none",
-        opacity:
-          Math.min(1, Math.max(0, (progress - 0.44) / 0.02)) *
-          Math.min(1, Math.max(0, (0.75 - progress) / 0.02)),
+        visibility: progress >= 0.44 && exitProgress < 0.99 ? "visible" : "hidden",
+        pointerEvents: progress >= 0.45 && exitProgress < 0.15 ? "auto" : "none",
+        opacity: sceneOpacity,
       }}
+      aria-label="Chapter 03: The Golden Structure — Horizontal Storytelling"
     >
-      {/* Interactive Architectural Drafting Background Field */}
+      {/* Subtle architectural elevation contour field */}
       <LivingContourField
         variant="structure-elevation"
-        scrollProgress={localProgress}
-        opacity={0.35}
+        active={active}
+        scrollProgress={ch03Local}
+        opacity={0.22}
       />
 
-      {/* =========================================================================
-          CONTINUOUS EVOLVING DRAWING ENVIRONMENT (Single Unified Stage)
-          ========================================================================= */}
-      <div className="relative w-full h-full pt-24 md:pt-28 pb-10 px-6 md:px-12 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-        
-        {/* -----------------------------------------------------------------------
-            LEFT COLUMN: Editorial Storytelling & Direct Exploration Controls
-            ----------------------------------------------------------------------- */}
-        <div className="lg:col-span-5 flex flex-col justify-between h-auto lg:h-[500px] z-20">
-          <div>
-            {/* Clean Section Identifier */}
-            <div className="flex items-center gap-2.5 text-terracotta text-[10px] font-mono uppercase tracking-widest pb-3 border-b border-border/70 mb-5 font-semibold">
-              <span>CHAPTER 03</span>
-              <span className="text-border">·</span>
-              <span className="text-ink-muted">
-                {activePhase === 1
-                  ? "STATE 1 OF 3 · UNBUILT GEOMETRY"
-                  : activePhase === 2
-                  ? "STATE 2 OF 3 · BUILT BY HANDS"
-                  : "STATE 3 OF 3 · GILDED SURFACE"}
-              </span>
-            </div>
-
-            {/* Phase 1 Narrative: An Idea Takes Shape */}
-            {activePhase === 1 && (
-              <div className="animate-fade-in">
-                <h3 className="font-serif italic text-2xl md:text-3xl lg:text-4xl text-ink font-light leading-tight">
-                  An idea takes shape.
-                </h3>
-                <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
-                  A vision conceived on an eroded red plateau in southern India: architecture not as a
-                  monument of domination, but as an inquiry into human unity, sacred geometry, and quietude.
-                </p>
-                
-                <div className="mt-6 pt-4 border-t border-border/80 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => setOutlineMode(!outlineMode)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-paper-light border border-border hover:border-terracotta text-ink font-mono text-[9.5px] uppercase tracking-wider transition-colors archival-shadow-subtle rounded-xs cursor-pointer"
-                  >
-                    <Eye size={12} className="text-terracotta" />
-                    <span>{outlineMode ? "VIEW TONED ELEVATION" : "PEEL TO GRAPHITE OUTLINE"}</span>
-                  </button>
-                  <span className="text-[10px] font-mono text-ink-muted">36M GEODESIC SPHERE</span>
-                </div>
-              </div>
-            )}
-
-            {/* Phase 2 Narrative: Built by Many Hands */}
-            {activePhase === 2 && (
-              <div className="animate-fade-in">
-                <h3 className="font-serif italic text-2xl md:text-3xl lg:text-4xl text-ink font-light leading-tight">
-                  Built by many hands.
-                </h3>
-                <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
-                  Before heavy machinery arrived, youth from dozens of nations hand-dug the foundation,
-                  hand-sifted laterite sand, and assembled timber armatures. Architecture became an act of
-                  collective human making.
-                </p>
-
-                <div className="mt-6 pt-4 border-t border-border/80 flex items-center gap-4">
-                  <button
-                    onClick={() =>
-                      setActiveCallout(
-                        activeCallout === "workshop"
-                          ? null
-                          : "Hand-assembled scaffolding and timber formwork constructed on site (1971–1977)."
-                      )
-                    }
-                    className="flex items-center gap-1.5 text-ink hover:text-terracotta font-mono text-[10px] uppercase tracking-wider transition-colors cursor-pointer"
-                  >
-                    <Compass size={12} className="text-forest" />
-                    <span>{activeCallout ? "CLOSE ANNOTATION" : "INSPECT FORMWORK"}</span>
-                  </button>
-                  <span className="text-border">·</span>
-                  <span className="font-mono text-[10px] text-ink-muted uppercase">
-                    PEACE AREA WORKSHOP
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Phase 3 Narrative: A Thousand Small Decisions */}
-            {activePhase === 3 && (
-              <div className="animate-fade-in">
-                <h3 className="font-serif italic text-2xl md:text-3xl lg:text-4xl text-ink font-light leading-tight">
-                  A thousand small decisions.
-                </h3>
-                <p className="font-sans text-xs md:text-sm text-ink-muted mt-3 leading-relaxed font-light max-w-md">
-                  1,415 convex and concave discs sheathe the geodesic frame, deflecting monsoonal wind
-                  shear and diffusing the southern Indian sun into interior quietude.
-                </p>
-
-                <div className="mt-6 pt-4 border-t border-border/80 flex flex-col gap-2.5">
-                  <button
-                    onClick={() => setShowComparison(!showComparison)}
-                    className="flex items-center justify-between px-3.5 py-2 bg-paper-light border border-border hover:border-gold text-ink font-mono text-[10px] uppercase tracking-wider transition-colors archival-shadow-subtle rounded-xs cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <SlidersHorizontal size={13} className="text-gold" />
-                      <span>{showComparison ? "RETURN TO MACRO DETAIL" : "COMPARE OUTLINE VS GOLD"}</span>
-                    </div>
-                    <span className="text-gold font-semibold">↔</span>
-                  </button>
-                  <div className="flex items-center gap-2 font-mono text-[9.5px] text-ink-muted">
-                    <Sparkles size={11} className="text-gold" />
-                    <span>28-KARAT GOLD LEAF MOSAIC TILES</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Contextual Inline Annotation Card (Not an intrusive pop-up) */}
-          {activeCallout && (
-            <div className="mt-4 p-3.5 bg-paper-light border border-border archival-shadow-subtle text-xs text-ink-muted font-sans font-light animate-fade-in flex items-start justify-between gap-3">
-              <p>{activeCallout}</p>
-              <button
-                onClick={() => setActiveCallout(null)}
-                className="text-ink hover:text-terracotta text-sm leading-none font-mono"
-              >
-                ×
-              </button>
-            </div>
-          )}
-
-          {/* Bottom Architectural Spec Line */}
-          <div className="hidden lg:flex items-center justify-between pt-4 border-t border-border/60 font-mono text-[9px] uppercase tracking-widest text-ink-muted">
-            <span>AXIS: 11° 59′ N, 79° 49′ E</span>
-            <span className="text-terracotta">SPHERICAL RADIUS: 18 METERS</span>
-          </div>
-        </div>
-
-        {/* -----------------------------------------------------------------------
-            RIGHT COLUMN: The Continuous Evolving Architectural Drawing
-            (One monumental artwork, evolving in place across scroll states)
-            ----------------------------------------------------------------------- */}
-        <div className="lg:col-span-7 relative w-full aspect-[4/3] md:aspect-[16/11] bg-paper-light border border-border archival-shadow overflow-hidden rounded-xs">
-          
-          {/* Comparison Slider Mode in Phase 3 */}
-          {showComparison && p3Weight > 0.4 ? (
-            <div className="absolute inset-0 w-full h-full z-30 animate-fade-in">
-              <LayerComparison
-                outlineSrc="/illustrated/ch03-structure/matrimandir-outline.webp"
-                shadedSrc="/illustrated/ch03-structure/matrimandir-shaded.webp"
-                outlineAlt="Graphite line study of Matrimandir elevation"
-                shadedAlt="Toned graphite and gold leaf shaded study of Matrimandir"
-                className="w-full h-full border-none shadow-none"
-              />
-            </div>
-          ) : null}
-
-          {/* Layer 1: Structural Elevation Study (Outline vs Shaded) */}
-          <div
-            className="absolute inset-0 w-full h-full transition-opacity duration-400"
-            style={{
-              opacity: p1Weight,
-              pointerEvents: p1Weight > 0.2 ? "auto" : "none",
-            }}
-          >
-            <Image
-              src={
-                outlineMode
-                  ? "/illustrated/ch03-structure/matrimandir-outline.webp"
-                  : "/illustrated/ch03-structure/matrimandir-shaded.webp"
-              }
-              alt="Structural elevation drawing of the Matrimandir"
-              fill
-              sizes="(max-width: 1024px) 100vw, 58vw"
-              className="object-contain p-2 md:p-4"
-              priority
-            />
-            <div className="absolute bottom-2.5 right-3 font-mono text-[8px] uppercase tracking-widest text-ink-muted/70 bg-paper-light/80 px-2 py-0.5 border border-border/50">
-              {outlineMode ? "GRAPHITE ELEVATION OUTLINE" : "TONED STRUCTURAL STUDY"}
-            </div>
-          </div>
-
-          {/* Layer 2: Workshop of Hands (Artisans and Timber Armature) */}
-          <div
-            className="absolute inset-0 w-full h-full transition-opacity duration-400"
-            style={{
-              opacity: p2Weight,
-              pointerEvents: p2Weight > 0.2 ? "auto" : "none",
-            }}
-          >
-            <Image
-              src="/illustrated/ch03-structure/ch03-frame-b-making.webp"
-              alt="Artisans and architects assembling the Matrimandir structure in Auroville workshop"
-              fill
-              sizes="(max-width: 1024px) 100vw, 58vw"
-              className="object-cover"
-              priority
-            />
-            <div className="absolute bottom-2.5 right-3 font-mono text-[8px] uppercase tracking-widest text-ink-muted/70 bg-paper-light/80 px-2 py-0.5 border border-border/50">
-              WORKSHOP & TIMBER FORMWORK
-            </div>
-          </div>
-
-          {/* Layer 3: Macro Geodesic Discs Detail */}
-          <div
-            className="absolute inset-0 w-full h-full transition-opacity duration-400"
-            style={{
-              opacity: p3Weight,
-              pointerEvents: p3Weight > 0.2 ? "auto" : "none",
-            }}
-          >
-            <Image
-              src="/illustrated/ch03-structure/ch03-frame-c-macro.webp"
-              alt="Macro drawing of Matrimandir geodesic discs and gold leaf mosaic tiles"
-              fill
-              sizes="(max-width: 1024px) 100vw, 58vw"
-              className="object-cover"
-              priority
-            />
-            <div className="absolute bottom-2.5 right-3 font-mono text-[8px] uppercase tracking-widest text-gold/90 bg-paper-light/80 px-2 py-0.5 border border-border/50 font-medium">
-              1,415 GILDED GEODESIC DISCS
-            </div>
-          </div>
-
-          {/* Fine Drafting Compass & Axis Overlays */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-30">
-            <line
-              x1="50%"
-              y1="0"
-              x2="50%"
-              y2="100%"
-              stroke="#5B5751"
-              strokeWidth="0.75"
-              strokeDasharray="4 4"
-            />
-            <line
-              x1="0"
-              y1="82%"
-              x2="100%"
-              y2="82%"
-              stroke="#5B5751"
-              strokeWidth="0.75"
-            />
-          </svg>
-        </div>
-      </div>
-
-      {/* =========================================================================
-          CONTINUOUS HANDOFF TO CH04: Architectural Arc unrolls into Suspension Cord
-          ========================================================================= */}
+      {/* =====================================================================
+          CONTINUOUS HORIZONTAL TRACK (3 evenly balanced 100vw editorial spreads)
+          ===================================================================== */}
       <div
-        className="absolute bottom-0 inset-x-0 w-full h-24 pointer-events-none z-30 transition-opacity duration-500"
-        style={{
-          opacity: handoffCH04,
-        }}
+        ref={trackRef}
+        className="relative h-full flex flex-nowrap items-stretch will-change-transform"
+        style={{ width: "max-content" }}
       >
+        {/* Single Quiet Architectural Horizon Thread tying the 3 spreads */}
         <svg
-          viewBox="0 0 1440 96"
-          fill="none"
-          className="w-full h-full"
+          className="pointer-events-none absolute inset-y-0 left-0 w-full h-full opacity-20"
+          viewBox="0 0 3600 900"
           preserveAspectRatio="none"
+          fill="none"
+          aria-hidden="true"
         >
           <path
-            d="M -40 20 Q 720 70, 1480 25"
-            stroke="#4A453E"
-            strokeWidth="2.2"
-            strokeLinecap="round"
+            d="M 80 790 L 1160 790 C 1480 790, 1740 770, 2120 770 C 2540 770, 2860 790, 3520 790"
+            stroke="#6B5A48"
+            strokeWidth="1"
+            strokeDasharray="5 6"
           />
         </svg>
+
+        {/* ===================================================================
+            STORY 01 / IMAGINED
+            Dominant geodesic elevation visually anchors the spread (~58% width)
+            while smaller study & spiral plan cluster cohesively beside it.
+            =================================================================== */}
+        <section
+          aria-label="Story 01: Imagined"
+          className="relative shrink-0 w-[100vw] h-full px-6 md:px-14 pt-20 md:pt-24 pb-8 md:pb-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8"
+        >
+          {/* Left Unified Cluster: 01/ Copy + Supporting Studies Nestled Toward Center */}
+          <div className="relative w-full md:w-[39%] h-auto md:h-[74vh] flex flex-col justify-between z-10">
+            <div className="flex items-start gap-4 max-w-sm">
+              <span className="font-sans font-light text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
+                01<span className="text-terracotta/85 font-extralight">/</span>
+              </span>
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-1">
+                  Imagined
+                </div>
+                <p className="font-sans text-xs md:text-[13px] text-ink/85 leading-relaxed font-light text-pretty max-w-[30ch]">
+                  Before stone or metal, the sanctuary existed purely as geometry—arcs compassed over red dust to house quietude.
+                </p>
+              </div>
+            </div>
+
+            {/* Desktop Clustered Supporting Studies (Compact, Subordinate, Connected) */}
+            <div className="hidden md:block relative w-full flex-1 mt-4">
+              {/* Support A (upper-right overlapping edge near dominant elevation) */}
+              <div
+                className="absolute top-[4%] right-[0%] w-[14.5vw] max-w-[205px] aspect-[1376/768] overflow-hidden bg-paper-light/90 border border-border/50 archival-shadow-subtle z-20"
+                style={{
+                  transform: `translate3d(${(1 - sup01Graphite) * 26}px, ${(1 - sup01Graphite) * 14}px, 0)`,
+                  clipPath: `inset(${(1 - sup01Graphite) * 20}% 0% 0% ${(1 - sup01Graphite) * 32}%)`,
+                }}
+              >
+                <Image
+                  src="/illustrated/ch03-structure/matrimandir-outline.webp"
+                  alt="Structural graphite elevation lines"
+                  fill
+                  sizes="210px"
+                  className="object-cover scale-[1.06]"
+                  priority
+                />
+              </div>
+
+              {/* Support B (anchored bottom-left directly below narrative) */}
+              <div
+                className="absolute bottom-[2%] left-[0%] w-[18.5vw] max-w-[265px] aspect-[1376/768] overflow-hidden bg-paper-light/85 border border-border/45 archival-shadow-subtle"
+                style={{
+                  transform: `translate3d(${(1 - sup01Galaxy) * -22}px, ${(1 - sup01Galaxy) * 16}px, 0)`,
+                  clipPath: `inset(0% ${(1 - sup01Galaxy) * 36}% ${(1 - sup01Galaxy) * 16}% 0%)`,
+                }}
+              >
+                <Image
+                  src="/art/architecture/galaxy-plan.webp"
+                  alt="Early radial Galaxy masterplan geometry"
+                  fill
+                  sizes="270px"
+                  className="object-cover scale-[1.05]"
+                  style={{ opacity: 0.88 }}
+                  priority
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Dominant Visual Focal Anchor: Massive Matrimandir Geodesic Sphere */}
+          <div className="relative w-full md:w-[58%] h-[42vh] md:h-[75vh] flex items-center justify-end">
+            <div
+              className="relative w-full h-full max-h-[680px] overflow-hidden bg-[#F1ECE1] border border-border/45 archival-shadow-subtle"
+              style={{
+                clipPath: `inset(${clip01V}% 0% ${clip01V}% ${clip01L}%)`,
+              }}
+            >
+              <Image
+                src="/illustrated/ch03-structure/matrimandir-shaded.webp"
+                alt="Architectural elevation study of the Matrimandir geodesic sphere"
+                fill
+                sizes="(max-width: 768px) 92vw, 58vw"
+                className="object-cover contrast-[1.06] brightness-[0.97]"
+                style={{
+                  transform: `scale(${scale01}) translate3d(${pan01X}%, 0, 0)`,
+                  transformOrigin: "center center",
+                }}
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Mobile Compact Supports */}
+          <div className="flex md:hidden items-center gap-3 w-full">
+            <div className="relative w-1/2 aspect-[1376/768] overflow-hidden bg-paper-light border border-border/45">
+              <Image
+                src="/illustrated/ch03-structure/matrimandir-outline.webp"
+                alt="Structural lines"
+                fill
+                sizes="45vw"
+                className="object-cover"
+              />
+            </div>
+            <div className="relative w-1/2 aspect-[1376/768] overflow-hidden bg-paper-light border border-border/45">
+              <Image
+                src="/art/architecture/galaxy-plan.webp"
+                alt="Galaxy radial concept"
+                fill
+                sizes="45vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ===================================================================
+            STORY 02 / MADE
+            Nón Lá Layout Flow: Left cohesive cluster (02/ + staggered studio
+            supports) sits tightly adjacent to a tall dominant right-hand macro
+            aperture whose golden discs expand progressively while held in view.
+            =================================================================== */}
+        <section
+          aria-label="Story 02: Made"
+          className="relative shrink-0 w-[100vw] h-full px-6 md:px-14 pt-20 md:pt-24 pb-8 md:pb-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8"
+        >
+          {/* Left Unified Cluster: 02/ Editorial Copy + Two Staggered Workshop Supports */}
+          <div className="relative w-full md:w-[41%] h-auto md:h-[74vh] flex flex-col justify-between z-10">
+            <div className="flex items-start gap-4 max-w-sm">
+              <span className="font-sans font-light text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
+                02<span className="text-terracotta/85 font-extralight">/</span>
+              </span>
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-1">
+                  Made
+                </div>
+                <p className="font-sans text-xs md:text-[13px] text-ink/85 leading-relaxed font-light text-pretty max-w-[31ch]">
+                  In open-air workshops, hands bent timber formwork and steel ribs before 1,415 hand-gilded discs sheathed the sphere.
+                </p>
+              </div>
+            </div>
+
+            {/* Desktop Staggered Supporting Pair — Never Detached From Text */}
+            <div className="hidden md:block relative w-full flex-1 mt-4">
+              {/* Support A (first beat: workshop artisans table) */}
+              <div
+                className="relative mt-[8vh] w-[25vw] max-w-[355px] aspect-[1200/896] overflow-hidden border border-border/50 archival-shadow-subtle"
+                style={{
+                  transform: `translate3d(0, ${(1 - open02Work) * 26}px, 0)`,
+                  clipPath: `inset(${(1 - open02Work) * 28}% 0% 0% ${(1 - open02Work) * 18}%)`,
+                }}
+              >
+                <Image
+                  src="/illustrated/ch03-structure/ch03-frame-b-making.webp"
+                  alt="Artisans building timber formwork and scale dome models"
+                  fill
+                  sizes="360px"
+                  className="object-cover"
+                  style={{
+                    transform: `scale(${1.12 - open02Work * 0.08})`,
+                    transformOrigin: "center center",
+                  }}
+                  priority
+                />
+              </div>
+
+              {/* Support B (second delayed stagger beat: drafter perched at upper-right shoulder) */}
+              <div
+                className="absolute top-[1vh] right-[0%] w-[13vw] max-w-[188px] aspect-[716/768] overflow-hidden bg-paper-light border border-border/55 p-1 archival-shadow z-20"
+                style={{
+                  transform: `translate3d(${(1 - open02Draft) * 24}px, ${(1 - open02Draft) * -14}px, 0)`,
+                  clipPath: `inset(0% 0% ${(1 - open02Draft) * 42}% 0%)`,
+                }}
+              >
+                <div className="relative w-full h-full overflow-hidden">
+                  <Image
+                    src="/art/people/architect.webp"
+                    alt="Drafting architectural plans by hand"
+                    fill
+                    sizes="190px"
+                    className="object-contain"
+                    style={{ transform: `scale(${1.08 - open02Draft * 0.06})` }}
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dominant Right Artwork: Vertical Architectural Aperture Expanding Into Golden Discs */}
+          <div className="relative w-full md:w-[56%] h-[42vh] md:h-[75vh] flex items-center justify-end">
+            <div
+              className="relative w-full h-full max-h-[680px] overflow-hidden archival-shadow-subtle"
+              style={{
+                clipPath: `inset(${clip02V}% 0% ${clip02V}% ${clip02L}%)`,
+              }}
+            >
+              <Image
+                src="/illustrated/ch03-structure/ch03-frame-c-macro.webp"
+                alt="Detailed golden geodesic discs and space-frame truss"
+                fill
+                sizes="(max-width: 768px) 92vw, 56vw"
+                className="object-cover"
+                style={{
+                  transform: `scale(${scale02}) translate3d(${pan02X}%, 0, 0)`,
+                  transformOrigin: "center center",
+                }}
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Mobile Compact Workshop Pair */}
+          <div className="flex md:hidden items-center gap-3 w-full">
+            <div className="relative w-1/3 aspect-[716/768] overflow-hidden bg-paper-light border border-border/45">
+              <Image
+                src="/art/people/architect.webp"
+                alt="Drafting plans"
+                fill
+                sizes="30vw"
+                className="object-contain"
+              />
+            </div>
+            <div className="relative w-2/3 aspect-[1200/896] overflow-hidden border border-border/45">
+              <Image
+                src="/illustrated/ch03-structure/ch03-frame-b-making.webp"
+                alt="Workshop formwork assembly"
+                fill
+                sizes="60vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ===================================================================
+            STORY 03 / REALIZED
+            Sanctuary study & courtyard introduce the subject first, then the
+            dominant forest panorama expands across the right to establish a clear,
+            rock-solid ending (track stopped at 1.00 before vertical handoff).
+            =================================================================== */}
+        <section
+          aria-label="Story 03: Realized"
+          className="relative shrink-0 w-[100vw] h-full px-6 md:px-14 pt-20 md:pt-24 pb-8 md:pb-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8"
+        >
+          {/* Left Column: 03/ Copy + Introducing Courtyard & Geometric Study Pair */}
+          <div className="relative w-full md:w-[41%] h-auto md:h-[74vh] flex flex-col justify-between z-10">
+            <div className="flex items-start gap-4 max-w-sm">
+              <span className="font-sans font-light text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
+                03<span className="text-terracotta/85 font-extralight">/</span>
+              </span>
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-1">
+                  Realized
+                </div>
+                <p className="font-sans text-xs md:text-[13px] text-ink/85 leading-relaxed font-light text-pretty max-w-[31ch]">
+                  Completed after thirty-seven years, the sphere now stands amidst twelve gardens and the young forest below.
+                </p>
+              </div>
+            </div>
+
+            <div className="hidden md:block relative w-full flex-1 mt-4">
+              {/* First Introduction Beat: Completed courtyard & red sandstone ramps */}
+              <div
+                className="relative mt-[8vh] w-[25vw] max-w-[360px] aspect-[1376/768] overflow-hidden border border-border/50 archival-shadow-subtle"
+                style={{
+                  transform: `translate3d(0, ${(1 - open03Courtyard) * 24}px, 0)`,
+                  clipPath: `inset(0% ${(1 - open03Courtyard) * 34}% ${(1 - open03Courtyard) * 14}% 0%)`,
+                }}
+              >
+                <Image
+                  src="/illustrated/ch02-page/matrimandir-illustrated.jpg"
+                  alt="Completed Matrimandir with red sandstone ramps and marble lotus"
+                  fill
+                  sizes="360px"
+                  className="object-cover"
+                  style={{ transform: `scale(${1.1 - open03Courtyard * 0.08})` }}
+                  priority
+                />
+              </div>
+
+              {/* Second Intro Beat: Overlapping small architectural study */}
+              <div
+                className="absolute top-[1.5vh] right-[0%] w-[13.5vw] max-w-[192px] aspect-[1376/768] bg-paper-light border border-border/55 p-1 archival-shadow z-20"
+                style={{
+                  transform: `translate3d(${(1 - open03Study) * 22}px, ${(1 - open03Study) * -12}px, 0)`,
+                  clipPath: `inset(${(1 - open03Study) * 36}% 0% 0% 0%)`,
+                }}
+              >
+                <div className="relative w-full h-full overflow-hidden">
+                  <Image
+                    src="/art/architecture/matrimandir-study.webp"
+                    alt="Original geometric elevation study alongside realized architecture"
+                    fill
+                    sizes="195px"
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Dominant Final Visual Payoff: Evergreen Forest Panorama Unfolds to Complete Stop */}
+          <div className="relative w-full md:w-[56%] h-[42vh] md:h-[75vh] flex items-center justify-end">
+            <div
+              className="relative w-full h-full max-h-[680px] overflow-hidden archival-shadow-subtle"
+              style={{
+                clipPath: `inset(${clip03V}% 0% ${clip03V}% ${clip03L}%)`,
+              }}
+            >
+              <Image
+                src="/illustrated/ch02-page/panorama-master.webp"
+                alt="Completed Matrimandir rising above regenerated evergreen forest and red earth trail"
+                fill
+                sizes="(max-width: 768px) 92vw, 56vw"
+                className="object-cover"
+                style={{
+                  transform: `scale(${scale03}) translate3d(${pan03X}%, 0, 0)`,
+                  transformOrigin: "center center",
+                }}
+                priority
+              />
+            </div>
+          </div>
+
+          {/* Mobile Compact Lower Pairing */}
+          <div className="flex md:hidden items-center gap-3 w-full">
+            <div className="relative w-3/5 aspect-[1376/768] overflow-hidden border border-border/45">
+              <Image
+                src="/illustrated/ch02-page/matrimandir-illustrated.jpg"
+                alt="Completed Matrimandir"
+                fill
+                sizes="55vw"
+                className="object-cover"
+              />
+            </div>
+            <div className="relative w-2/5 aspect-[1376/768] overflow-hidden bg-paper-light border border-border/45">
+              <Image
+                src="/art/architecture/matrimandir-study.webp"
+                alt="Concept elevation"
+                fill
+                sizes="35vw"
+                className="object-contain p-1"
+              />
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   );

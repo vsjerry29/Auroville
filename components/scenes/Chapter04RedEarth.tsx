@@ -1,656 +1,426 @@
 "use client";
 
-import { useState, useRef, useEffect, MouseEvent } from "react";
 import Image from "next/image";
 import LivingContourField from "@/components/experience/LivingContourField";
-import { Maximize2, RotateCcw, X, Sprout, Compass } from "lucide-react";
+import { EditorialAction } from "@/components/ui/EditorialControls";
 
-interface EarthPlate {
+interface HangingPrintSpec {
   id: string;
-  plate: string;
   title: string;
-  subtitle: string;
   src: string;
-  story: string;
-  detailedSpecs: {
-    location: string;
-    elevation: string;
-    soilType: string;
-    plantingEra: string;
-  };
-  defaultTilt: number;
-  desktopLeftPercent: number;
-  cordHangY: number;
+  alt: string;
+  /** Horizontal anchor percentage (center of clip) on 0..100 scale */
+  xPct: number;
+  /** Varied print sizes for a light, organic gallery rhythm (matching Nón Lá hierarchy) */
+  widthCss: string;
+  /** Resting tilt angle around top-center wooden clip */
+  restAngle: number;
+  /** Staggered vertical entrance travel offset (px) */
+  enterOffsetY: number;
+  /** Entrance settling phase inside enterProgress 0..1 */
+  settleWindow: [number, number];
 }
 
-const EARTH_PLATES: EarthPlate[] = [
+// Quadratic Bezier wire equation for M -20 135 Q 500 265, 1020 145 (viewBox 1000x1000)
+// Since control X = 500 = midpoint(-20, 1020), x(t) is strictly linear so y(x) matches pixel-for-pixel!
+function getCordYPercent(xPct: number, p0Y = 135, p1Y = 265, p2Y = 145): number {
+  const t = Math.min(1, Math.max(0, (xPct * 10 + 20) / 1040));
+  const y = (1 - t) * (1 - t) * p0Y + 2 * (1 - t) * t * p1Y + t * t * p2Y;
+  return y / 10;
+}
+
+const HANGING_PRINTS: HangingPrintSpec[] = [
   {
-    id: "red-earth",
-    plate: "PLATE A",
+    id: "earth",
     title: "Terracotta Horizons",
-    subtitle: "Laterite Ravines & Soil Strata",
     src: "/illustrated/ch04-earth/print-red-earth.webp",
-    story:
-      "Deep eroded canyons and iron-rich laterite earth. Before a single tree took root, this was a wind-swept, sun-bleached plateau requiring millions of hand-dug water bunds to retain precious monsoon rain.",
-    detailedSpecs: {
-      location: "Matrimandir Outer Buffer",
-      elevation: "52m above sea level",
-      soilType: "Cuddalore Sandstone / Ferruginous Laterite",
-      plantingEra: "1968–1974 Pioneer Phase",
-    },
-    defaultTilt: -1.8,
-    desktopLeftPercent: 22,
-    cordHangY: 20,
+    alt: "Terracotta Horizons: illustrated red laterite soil profile and geological strata",
+    xPct: 19.5,
+    widthCss: "clamp(124px, min(13.2vw, 20.5vh), 186px)",
+    restAngle: -3.2,
+    enterOffsetY: 46,
+    settleWindow: [0.3, 0.88],
   },
   {
-    id: "seed-hand",
-    plate: "PLATE B",
+    id: "seed",
     title: "Seed Anatomy & Sowing",
-    subtitle: "Hands Sowing Indigenous Species",
     src: "/illustrated/ch04-earth/print-seed-hand.webp",
-    story:
-      "Neem, banyan, and indigenous acacia seeds held in working hands. Over fifty years, more than three million trees were planted by hand to rebuild the microclimate and restore ambient humidity.",
-    detailedSpecs: {
-      location: "Aurogreen & Forecomers Nursery",
-      elevation: "48m above sea level",
-      soilType: "Organic Loam Topsoil Layer",
-      plantingEra: "1972–Present Reforestation",
-    },
-    defaultTilt: 1.5,
-    desktopLeftPercent: 50,
-    cordHangY: 34,
+    alt: "Seed Anatomy & Sowing: indigenous neem and banyan seeds cupped in hand",
+    xPct: 49.0,
+    widthCss: "clamp(158px, min(17.5vw, 27.5vh), 252px)",
+    restAngle: 2.4,
+    enterOffsetY: 68,
+    settleWindow: [0.42, 0.96],
   },
   {
-    id: "roots-strata",
-    plate: "PLATE C",
+    id: "roots",
     title: "Taproot Architecture",
-    subtitle: "Subterranean Aquifer Anchors",
     src: "/illustrated/ch04-earth/print-roots-strata.webp",
-    story:
-      "Fibrous taproot systems fracturing hard laterite hardpan, capturing monsoon rain underground and anchoring the living forest against turbulent Bay of Bengal cyclonic winds.",
-    detailedSpecs: {
-      location: "Kottakarai Watershed Ridge",
-      elevation: "55m above sea level",
-      soilType: "Fractured Ironstone Hardpan",
-      plantingEra: "Pioneer Acacia & Dodonaea Rooting",
-    },
-    defaultTilt: -1.4,
-    desktopLeftPercent: 78,
-    cordHangY: 22,
+    alt: "Taproot Architecture: deep root networks anchoring into ironstone layers",
+    xPct: 79.5,
+    widthCss: "clamp(134px, min(14.8vw, 23vh), 210px)",
+    restAngle: -2.1,
+    enterOffsetY: 34,
+    settleWindow: [0.36, 0.92],
   },
 ];
 
-interface PlantedSeed {
-  id: number;
-  x: number;
-  y: number;
-}
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+const smooth = (a: number, b: number, x: number) => {
+  const t = clamp01((x - a) / (b - a));
+  return t * t * (3 - 2 * t);
+};
 
 interface Chapter04RedEarthProps {
-  progress: number; // Global scroll progress 0.0 - 1.0
-  active: boolean;
+  /** 0.0 -> 1.0 as Chapter 04 physically enters from below the viewport */
+  enterProgress: number;
+  /** 0.0 -> 1.0 as visitor scrolls further through Chapter 04 after settling */
+  progress: number;
   onNavigateStart?: () => void;
 }
 
 export default function Chapter04RedEarth({
+  enterProgress,
   progress,
-  active,
   onNavigateStart,
 }: Chapter04RedEarthProps) {
-  // Normalize progress for Scene 04 (range: 0.72 - 1.00)
-  const localProgress = Math.min(1, Math.max(0, (progress - 0.72) / 0.28));
-
-  // Focus modal state
-  const [activePlate, setActivePlate] = useState<EarthPlate | null>(null);
-  const [hoveredPlateId, setHoveredPlateId] = useState<string | null>(null);
-
-  // Direct Interaction: Plant Seeds in Landscape Phase
-  const [plantedSeeds, setPlantedSeeds] = useState<PlantedSeed[]>([]);
-  const landscapeRef = useRef<HTMLDivElement>(null);
-
-  // Keyboard navigation for modal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && activePlate) {
-        setActivePlate(null);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activePlate]);
-
-  if (!active && progress < 0.70) {
-    return null;
-  }
-
-  // ---------------------------------------------------------------------------
-  // SCROLL CHOREOGRAPHY PHASES
-  // 1. Entrance & Cord Draw (0.00 - 0.18): Linen cord draws, plates settle
-  // 2. Suspended Exhibition (0.18 - 0.42): 3 plates hanging with organic sway
-  // 3. Planar Transformation (0.42 - 0.68): Plate A expands forward, B & C drift away
-  // 4. Living Red Earth Canvas (0.68 - 1.00): Full bleed landscape, interactive seed sowing
-  // ---------------------------------------------------------------------------
-
-  const entranceProgress = Math.min(1, Math.max(0, localProgress / 0.18));
-  const cordDashOffset = Math.max(0, (1 - entranceProgress) * 1600);
-  const cordOpacity = Math.min(1, localProgress / 0.12);
-
-  const transformProgress = Math.min(1, Math.max(0, (localProgress - 0.40) / 0.26));
-  const landscapeProgress = Math.min(1, Math.max(0, (localProgress - 0.64) / 0.36));
-
-  // Secondary plates fade as Plate A expands
-  const secondaryPlatesOpacity = Math.max(0, 1 - transformProgress * 2.2);
-
-  const handleLandscapeClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (landscapeProgress < 0.2) return;
-    if (!landscapeRef.current) return;
-    const rect = landscapeRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setPlantedSeeds((prev) => [...prev.slice(-15), { id: Date.now(), x, y }]);
-  };
+  // Continuous wire completes early so prints arrive smoothly onto an unbroken cord
+  const cordDraw = smooth(0.02, 0.24, enterProgress);
+  const backdropFade = smooth(0.18, 0.92, enterProgress);
+  const footerFade = smooth(0.68, 1.0, enterProgress);
+  const postBridge = clamp01(progress);
 
   return (
-    <div
-      className="absolute inset-0 w-full h-full overflow-hidden select-none bg-paper text-ink transition-opacity duration-300"
-      style={{
-        zIndex: 25,
-        visibility: progress >= 0.72 ? "visible" : "hidden",
-        pointerEvents: progress >= 0.73 ? "auto" : "none",
-        opacity: Math.min(1, Math.max(0, (progress - 0.72) / 0.02)),
-      }}
-    >
-      {/* Living Soil Strata & Geological Field */}
+    <div className="sticky top-0 w-full h-screen overflow-hidden select-none bg-paper text-ink border-t border-border/35">
+      {/* Subtle soil contour field */}
       <LivingContourField
         variant="earth-strata"
-        scrollProgress={localProgress}
-        opacity={0.4}
+        active={enterProgress > 0.05}
+        scrollProgress={progress}
+        opacity={0.22 * backdropFade}
       />
 
-      {/* =======================================================================
-          SCENE HEADER & ARCHIVAL INDEX (Clean, non-colliding typography)
-          ======================================================================= */}
+      {/* =====================================================================
+          PROMINENT YET FAINT RADIAL GEOMETRIC MOTIF (Echoing Nón Lá circular study)
+          Positioned subtly behind the right-middle gallery prints.
+          ===================================================================== */}
       <div
-        className="absolute top-20 md:top-24 left-6 md:left-12 z-10 pointer-events-none transition-all duration-300"
+        className="pointer-events-none absolute top-[48%] left-[56%] -translate-x-1/2 -translate-y-1/2 w-[58vmin] max-w-[540px] aspect-square"
         style={{
-          opacity: Math.max(0, 1 - transformProgress * 2.0) * Math.min(1, localProgress / 0.12),
+          opacity: 0.58 * backdropFade,
+          transform: `translate(-50%, -50%) scale(${0.94 + backdropFade * 0.06}) rotate(${postBridge * 6}deg)`,
         }}
       >
-        <div className="flex items-center gap-2.5 text-terracotta text-[10px] font-mono uppercase tracking-widest font-semibold">
-          <span>CHAPTER 04</span>
-          <span className="text-border">·</span>
-          <span className="text-ink-muted">THREE SUSPENDED ARCHIVAL PLATES</span>
+        <Image
+          src="/illustrated/ch04-earth/radial-earth-diagram.svg"
+          alt=""
+          fill
+          sizes="540px"
+          className="object-contain"
+          aria-hidden="true"
+        />
+      </div>
+
+      {/* Minimal Top Chapter Cue (valid pt-20 below fixed navbar) */}
+      <div
+        className="relative z-20 max-w-7xl mx-auto px-6 md:px-14 pt-20 md:pt-24 flex items-center justify-between pointer-events-none"
+        style={{ opacity: smooth(0.1, 0.55, enterProgress) }}
+      >
+        <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold">
+          04 · The Earth Remembers
         </div>
       </div>
 
-      {/* =======================================================================
-          SUSPENSION CORD (Spans across viewport with organic sag)
-          ======================================================================= */}
-      <div
-        className="absolute inset-x-0 top-0 w-full h-full pointer-events-none z-10 transition-opacity duration-500"
-        style={{
-          opacity: cordOpacity * (1 - landscapeProgress),
-        }}
-      >
+      {/* =====================================================================
+          DESKTOP & TABLET LIGHT HANGING GALLERY
+          Sweeping curved cord from (0%, 13.5%) dipping to (~50%, 20.5%) to (100%, 14.5%)
+          Every clip sits directly on the wire; prints vary clearly in scale & drop.
+          ===================================================================== */}
+      <div className="hidden md:block absolute inset-0 w-full h-full pointer-events-none">
         <svg
-          className="w-full h-full"
+          className="absolute inset-0 w-full h-full z-10 pointer-events-none"
+          viewBox="0 0 1000 1000"
           preserveAspectRatio="none"
-          viewBox="0 0 1440 900"
           fill="none"
         >
-          {/* Main sagging linen cord */}
+          {/* Main continuous curved linen wire */}
           <path
-            d="M -40 270 Q 720 330, 1480 275"
+            d="M -20 135 Q 500 265, 1020 145"
             stroke="#4A453E"
-            strokeWidth="2.2"
+            strokeWidth="1.5"
             strokeLinecap="round"
             style={{
-              strokeDasharray: 1600,
-              strokeDashoffset: cordDashOffset,
+              strokeDasharray: 1200,
+              strokeDashoffset: (1 - cordDraw) * 1200,
             }}
           />
-          {/* Fine twisted twine secondary strand */}
+
+          {/* Subtle post-settlement terracotta root line */}
           <path
-            d="M -40 271 Q 720 331, 1480 276"
-            stroke="#968875"
-            strokeWidth="0.8"
-            strokeDasharray="4 3"
-            opacity="0.6"
+            d="M 220 735 C 345 758, 435 710, 520 695 C 625 680, 720 735, 810 705"
+            stroke="#B75E3F"
+            strokeWidth="1.15"
+            strokeDasharray="5 6"
+            opacity={0.42 * postBridge}
           />
         </svg>
-      </div>
 
-      {/* =======================================================================
-          DESKTOP PRINT EXHIBITION (3 Suspended Archival Plates)
-          ======================================================================= */}
-      <div className="hidden md:block absolute inset-0 z-20 pointer-events-none">
-        {EARTH_PLATES.map((plate, index) => {
-          const isRedEarth = plate.id === "red-earth";
-          const isHovered = hoveredPlateId === plate.id;
-
-          // Position under sagging linen cord
-          const cordY = 270 + Math.sin((plate.desktopLeftPercent / 100) * Math.PI) * 45;
-
-          // Secondary plates (Plates B and C)
-          if (!isRedEarth) {
-            const driftX = (index - 1) * 70 * transformProgress;
-            const currentOpacity = secondaryPlatesOpacity * Math.min(1, entranceProgress * 1.5);
-            if (currentOpacity <= 0.01) return null;
-
-            return (
-              <div
-                key={plate.id}
-                role="button"
-                tabIndex={0}
-                aria-label={`Inspect ${plate.title}`}
-                className="absolute transition-all duration-300 ease-out pointer-events-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-terracotta"
-                style={{
-                  left: `${plate.desktopLeftPercent}%`,
-                  top: `${cordY}px`,
-                  transform: `translate(-50%, ${isHovered ? "-8px" : "0px"}) translateX(${driftX}px) rotate(${
-                    isHovered ? 0 : plate.defaultTilt
-                  }deg)`,
-                  opacity: currentOpacity,
-                  width: "290px",
-                }}
-                onMouseEnter={() => setHoveredPlateId(plate.id)}
-                onMouseLeave={() => setHoveredPlateId(null)}
-                onClick={() => setActivePlate(plate)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    setActivePlate(plate);
-                  }
-                }}
-              >
-                {/* Wooden Peg */}
-                <div className="absolute -top-5 left-1/2 -translate-x-1/2 z-30">
-                  <WoodenPeg />
-                </div>
-
-                {/* Archival Paper Card */}
-                <div
-                  className={`bg-paper-light border border-border p-3 archival-shadow transition-all duration-300 rounded-xs ${
-                    isHovered ? "shadow-2xl border-terracotta/70 -translate-y-1" : ""
-                  }`}
-                >
-                  <div className="relative w-full aspect-[4/3] bg-paper-dark overflow-hidden">
-                    <Image
-                      src={plate.src}
-                      alt={plate.title}
-                      fill
-                      sizes="300px"
-                      className="object-cover transition-transform duration-500 hover:scale-103"
-                    />
-                  </div>
-
-                  <div className="pt-2.5 pb-0.5 flex flex-col justify-between">
-                    <div className="flex items-center justify-between font-mono text-[8.5px] uppercase tracking-wider text-terracotta font-semibold">
-                      <span>{plate.plate}</span>
-                      <span className="text-ink-muted">ARCHIVAL STUDY</span>
-                    </div>
-                    <div className="font-serif italic text-base text-ink font-light mt-0.5 leading-snug truncate">
-                      {plate.title}
-                    </div>
-                    <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/60 font-mono text-[7.5px] uppercase tracking-widest text-ink-muted">
-                      <span>INSPECT PLATE</span>
-                      <Maximize2 size={10} className="text-terracotta" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          }
-
-          // -------------------------------------------------------------------
-          // PLATE A (RED EARTH): Expands and seamlessly becomes the soil canvas
-          // -------------------------------------------------------------------
-          const redEarthOpacity =
-            Math.max(0, 1 - landscapeProgress * 1.5) * Math.min(1, entranceProgress * 1.5);
-          if (redEarthOpacity <= 0.01) return null;
-
-          const targetCenterY = 440;
-          const currentLeft = plate.desktopLeftPercent + (50 - plate.desktopLeftPercent) * transformProgress;
-          const currentTop = cordY + (targetCenterY - cordY) * transformProgress;
-          const currentScale = 1 + transformProgress * 1.8;
-          const currentTilt =
-            isHovered && transformProgress === 0 ? 0 : plate.defaultTilt * (1 - transformProgress);
+        {HANGING_PRINTS.map((print) => {
+          const cordY = getCordYPercent(print.xPct);
+          const settle = smooth(print.settleWindow[0], print.settleWindow[1], enterProgress);
+          const curY = (1 - settle) * print.enterOffsetY;
+          const curAngle = print.restAngle + (1 - settle) * (print.restAngle > 0 ? 1.5 : -1.5);
 
           return (
             <div
-              key={plate.id}
-              role="button"
-              tabIndex={0}
-              aria-label={`Inspect ${plate.title}`}
-              className="absolute transition-all duration-150 ease-out pointer-events-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-terracotta"
+              key={print.id}
+              className="absolute z-20 pointer-events-auto group"
               style={{
-                left: `${currentLeft}%`,
-                top: `${currentTop}px`,
-                transform: `translate(-50%, ${isHovered && transformProgress === 0 ? "-8px" : "-50%"}) rotate(${currentTilt}deg) scale(${currentScale})`,
-                opacity: redEarthOpacity,
-                width: "290px",
-                zIndex: transformProgress > 0 ? 35 : 20,
-              }}
-              onMouseEnter={() => setHoveredPlateId(plate.id)}
-              onMouseLeave={() => setHoveredPlateId(null)}
-              onClick={() => setActivePlate(plate)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  setActivePlate(plate);
-                }
+                left: `${print.xPct}%`,
+                top: `${cordY}%`,
+                width: print.widthCss,
+                transformOrigin: "50% 0%",
+                transform: `translate(-50%, ${curY}px) rotate(${curAngle}deg)`,
+                opacity: smooth(print.settleWindow[0] - 0.16, print.settleWindow[0] + 0.34, enterProgress),
               }}
             >
-              {/* Wooden Peg (fades out as plate detaches from cord) */}
-              <div
-                className="absolute -top-5 left-1/2 -translate-x-1/2 z-30 transition-opacity duration-300"
-                style={{ opacity: 1 - transformProgress * 2.5 }}
-              >
+              {/* Wooden Peg centered right onto the curve point */}
+              <div className="absolute -top-[14px] left-1/2 -translate-x-1/2 z-30 pointer-events-none">
                 <WoodenPeg />
               </div>
 
-              {/* Physical Print Card */}
-              <div
-                className={`bg-paper-light border transition-all duration-300 rounded-xs ${
-                  transformProgress > 0.2
-                    ? "p-0 border-transparent shadow-none"
-                    : "border-border p-3 archival-shadow"
-                } ${isHovered && transformProgress === 0 ? "shadow-2xl border-terracotta/70 -translate-y-1" : ""}`}
-              >
-                <div className="relative w-full aspect-[4/3] bg-paper-dark overflow-hidden">
+              {/* Light Archival Paper Print (zero heavy card borders or subtitle metadata) */}
+              <div className="bg-paper-light/95 border border-border/55 pt-1.5 px-1.5 pb-2 archival-shadow-subtle rounded-[1px] transition-transform duration-300 ease-out group-hover:scale-[1.015]">
+                <div className="relative w-full aspect-[570/861] overflow-hidden bg-paper-dark/30">
                   <Image
-                    src={plate.src}
-                    alt={plate.title}
+                    src={print.src}
+                    alt={print.alt}
                     fill
-                    sizes="340px"
+                    sizes="(max-width: 1024px) 22vw, 260px"
                     className="object-cover"
+                    priority
                   />
                 </div>
 
-                {transformProgress < 0.2 && (
-                  <div className="pt-2.5 pb-0.5 flex flex-col justify-between">
-                    <div className="flex items-center justify-between font-mono text-[8.5px] uppercase tracking-wider text-terracotta font-semibold">
-                      <span>{plate.plate}</span>
-                      <span className="text-ink-muted">ARCHIVAL STUDY</span>
-                    </div>
-                    <div className="font-serif italic text-base text-ink font-light mt-0.5 leading-snug truncate">
-                      {plate.title}
-                    </div>
-                    <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-border/60 font-mono text-[7.5px] uppercase tracking-widest text-ink-muted">
-                      <span>INSPECT PLATE</span>
-                      <Maximize2 size={10} className="text-terracotta" />
-                    </div>
-                  </div>
-                )}
+                {/* Single clean italic print title */}
+                <div className="pt-1.5 px-0.5 font-serif italic text-[13px] lg:text-sm text-ink font-light leading-tight truncate">
+                  {print.title}
+                </div>
               </div>
             </div>
           );
         })}
       </div>
 
-      {/* =======================================================================
-          MASTER RED EARTH LIVING CANVAS (Expands seamlessly when localProgress > 0.65)
-          ======================================================================= */}
-      {landscapeProgress > 0.02 && (
-        <div
-          ref={landscapeRef}
-          onClick={handleLandscapeClick}
-          className="absolute inset-0 w-full h-full z-40 transition-opacity duration-500 overflow-hidden"
-          style={{
-            opacity: landscapeProgress,
-            pointerEvents: landscapeProgress > 0.25 ? "auto" : "none",
-            cursor: "crosshair",
-          }}
-        >
-          {/* Full High-Resolution Red Earth Landscape Artwork */}
-          <Image
-            src="/illustrated/ch04-earth/print-red-earth.webp"
-            alt="The living red earth landscape of Auroville"
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover"
-          />
-
-          {/* Sown Seeds & Branching Taproots Layer */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none z-30">
-            {plantedSeeds.map((seed) => (
-              <g key={seed.id} className="animate-fade-in">
-                {/* Primary Taproot Fracturing Ironstone Hardpan */}
-                <path
-                  d={`M ${seed.x}% ${seed.y}% Q ${seed.x - 1.5}% ${seed.y + 4}%, ${seed.x - 0.5}% ${seed.y + 8}% T ${seed.x + 1.5}% ${seed.y + 14}%`}
-                  stroke="#4E3524"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                {/* Secondary Lateral Root */}
-                <path
-                  d={`M ${seed.x}% ${seed.y}% Q ${seed.x + 2.5}% ${seed.y + 5}%, ${seed.x + 3.5}% ${seed.y + 10}%`}
-                  stroke="#7A5233"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                {/* Sown Seed Cotyledon */}
-                <circle cx={`${seed.x}%`} cy={`${seed.y}%`} r="3.5" fill="#B75E3F" />
-                {/* Emerging Green Shoot */}
-                <path
-                  d={`M ${seed.x}% ${seed.y}% C ${seed.x - 1}% ${seed.y - 2}%, ${seed.x - 2.5}% ${seed.y - 4}%, ${seed.x - 1.5}% ${seed.y - 7}%`}
-                  stroke="#3E5C46"
-                  strokeWidth="2.4"
-                  strokeLinecap="round"
-                  fill="none"
-                />
-                <circle cx={`${seed.x - 1.5}%`} cy={`${seed.y - 7}%`} r="2.2" fill="#527D5E" />
-              </g>
-            ))}
+      {/* =====================================================================
+          MOBILE RESPONSIVE CURVED HANGING COMPOSITION (390px+)
+          ===================================================================== */}
+      <div className="md:hidden relative w-full h-[calc(100vh-130px)] px-4 pt-4 flex flex-col justify-between z-20">
+        {/* Upper Tier Wire + Varied Left & Right Prints */}
+        <div className="relative w-full h-[46%]">
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-10"
+            viewBox="0 0 1000 1000"
+            preserveAspectRatio="none"
+            fill="none"
+          >
+            <path
+              d="M -20 120 Q 500 215, 1020 135"
+              stroke="#4A453E"
+              strokeWidth="2.2"
+              style={{ strokeDasharray: 1200, strokeDashoffset: (1 - cordDraw) * 1200 }}
+            />
           </svg>
 
-          {/* Bottom Root Corridor & Navigation Bar */}
+          {/* Mobile Print 1: Earth (smaller lighter plate) */}
           <div
-            className="absolute bottom-0 inset-x-0 h-28 pointer-events-none z-20 flex items-end justify-between px-6 md:px-12 pb-5 bg-gradient-to-t from-ink/85 via-ink/40 to-transparent transition-opacity duration-500"
-            style={{ opacity: landscapeProgress }}
+            className="absolute z-20"
+            style={{
+              left: "25%",
+              top: `${getCordYPercent(25, 120, 215, 135)}%`,
+              width: "116px",
+              transformOrigin: "50% 0%",
+              transform: "translate(-50%, 0) rotate(-3deg)",
+            }}
           >
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-terracotta text-paper-light flex items-center justify-center">
-                <Sprout size={16} />
+            <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
+              <WoodenPeg />
+            </div>
+            <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
+              <div className="relative w-full aspect-[570/861]">
+                <Image
+                  src="/illustrated/ch04-earth/print-red-earth.webp"
+                  alt="Terracotta Horizons"
+                  fill
+                  sizes="120px"
+                  className="object-cover"
+                  priority
+                />
               </div>
-              <div>
-                <div className="font-mono text-[9px] uppercase tracking-widest text-paper-light/90 font-semibold">
-                  TAP RED EARTH TO SOW · {plantedSeeds.length} PLANTED
-                </div>
-                <div className="font-serif italic text-lg md:text-xl text-paper-light font-light">
-                  The Living Sanctuary Awakens
-                </div>
+              <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
+                Terracotta Horizons
               </div>
             </div>
+          </div>
 
-            {/* Return to Beginning Control */}
-            <div className="pointer-events-auto flex items-center gap-3">
-              {onNavigateStart && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onNavigateStart();
-                  }}
-                  className="flex items-center gap-2 px-3.5 py-1.5 bg-paper-light/95 backdrop-blur-md border border-border hover:border-ink font-mono text-[9.5px] uppercase tracking-wider text-ink transition-colors archival-shadow rounded-xs"
-                >
-                  <RotateCcw size={11} className="text-terracotta" />
-                  <span>RETURN TO COVER</span>
-                </button>
-              )}
+          {/* Mobile Print 2: Seed Anatomy (featured larger center-right plate) */}
+          <div
+            className="absolute z-20"
+            style={{
+              left: "72%",
+              top: `${getCordYPercent(72, 120, 215, 135)}%`,
+              width: "140px",
+              transformOrigin: "50% 0%",
+              transform: "translate(-50%, 0) rotate(2.4deg)",
+            }}
+          >
+            <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
+              <WoodenPeg />
+            </div>
+            <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
+              <div className="relative w-full aspect-[570/861]">
+                <Image
+                  src="/illustrated/ch04-earth/print-seed-hand.webp"
+                  alt="Seed Anatomy & Sowing"
+                  fill
+                  sizes="150px"
+                  className="object-cover"
+                  priority
+                />
+              </div>
+              <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
+                Seed Anatomy &amp; Sowing
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* =======================================================================
-          MOBILE RESPONSIVE GALLERY (Clean horizontal swipe list)
-          ======================================================================= */}
-      <div className="md:hidden absolute inset-0 z-20 flex flex-col justify-end pb-12 px-6 pointer-events-auto">
-        <div className="font-mono text-[9px] uppercase tracking-widest text-ink-muted mb-2 flex items-center justify-between">
-          <span>ARCHIVAL PLATES</span>
-          <span className="text-terracotta">SWIPE TO EXPLORE →</span>
-        </div>
+        {/* Lower Tier Wire + Taproot Architecture + Compact Caption */}
+        <div className="relative w-full h-[46%]">
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-10"
+            viewBox="0 0 1000 1000"
+            preserveAspectRatio="none"
+            fill="none"
+          >
+            <path
+              d="M -20 90 Q 500 170, 1020 110"
+              stroke="#4A453E"
+              strokeWidth="2.2"
+              style={{ strokeDasharray: 1200, strokeDashoffset: (1 - cordDraw) * 1200 }}
+            />
+          </svg>
 
-        <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x snap-mandatory">
-          {EARTH_PLATES.map((plate) => (
-            <div
-              key={plate.id}
-              onClick={() => setActivePlate(plate)}
-              className="min-w-[240px] max-w-[260px] snap-center bg-paper-light border border-border p-3 archival-shadow shrink-0 cursor-pointer rounded-xs"
-            >
-              <div className="relative w-full aspect-[4/3] bg-paper-dark overflow-hidden mb-2">
+          <div
+            className="absolute z-20"
+            style={{
+              left: "28%",
+              top: `${getCordYPercent(28, 90, 170, 110)}%`,
+              width: "130px",
+              transformOrigin: "50% 0%",
+              transform: "translate(-50%, 0) rotate(-2deg)",
+            }}
+          >
+            <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
+              <WoodenPeg />
+            </div>
+            <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
+              <div className="relative w-full aspect-[570/861]">
                 <Image
-                  src={plate.src}
-                  alt={plate.title}
+                  src="/illustrated/ch04-earth/print-roots-strata.webp"
+                  alt="Taproot Architecture"
                   fill
-                  sizes="260px"
+                  sizes="135px"
                   className="object-cover"
+                  priority
                 />
               </div>
-              <div className="font-mono text-[8.5px] text-terracotta uppercase font-semibold">
-                {plate.plate}
-              </div>
-              <div className="font-serif italic text-base text-ink font-light leading-snug truncate">
-                {plate.title}
-              </div>
-              <div className="mt-2 pt-1.5 border-t border-border/60 flex items-center justify-between font-mono text-[7.5px] text-ink-muted uppercase">
-                <span>INSPECT PLATE</span>
-                <Maximize2 size={10} className="text-terracotta" />
+              <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
+                Taproot Architecture
               </div>
             </div>
-          ))}
+          </div>
+
+          <div className="absolute right-2 top-[24%] w-[44%]">
+            <p className="font-serif italic text-base text-ink font-light leading-snug mb-1.5">
+              Earth, seed, and taproot.
+            </p>
+            <p className="font-sans text-[11px] text-ink-muted leading-snug font-light">
+              Three quiet steps turned laterite dust back into living forest.
+            </p>
+            {onNavigateStart && (
+              <div className="mt-2">
+                <EditorialAction
+                  onClick={onNavigateStart}
+                  arrow="back"
+                  className="font-mono text-[9.5px] uppercase tracking-[0.16em]"
+                >
+                  Return to Cover
+                </EditorialAction>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================================
+          DESKTOP QUIET EDITORIAL FOOTER (Trimmed & Balanced Beneath Varied Prints)
+          ===================================================================== */}
+      <div
+        className="hidden md:flex absolute bottom-7 inset-x-0 z-30 max-w-7xl mx-auto px-6 md:px-14 items-end justify-between gap-6 pointer-events-none"
+        style={{ opacity: footerFade }}
+      >
+        <div className="max-w-md">
+          <h3 className="font-serif italic text-2xl lg:text-3xl text-ink font-light leading-snug">
+            Earth, seed, and taproot.
+          </h3>
+          <p className="font-sans text-xs text-ink-muted mt-1 font-light leading-relaxed text-pretty">
+            Three quiet steps turned laterite dust back into living forest.
+          </p>
         </div>
 
         {onNavigateStart && (
-          <button
-            onClick={onNavigateStart}
-            className="mt-3 w-full py-2 bg-paper-light border border-border text-ink font-mono text-[9.5px] uppercase tracking-wider flex items-center justify-center gap-2 rounded-xs"
-          >
-            <RotateCcw size={11} className="text-terracotta" />
-            <span>RETURN TO COVER</span>
-          </button>
+          <div className="pointer-events-auto shrink-0">
+            <EditorialAction
+              onClick={onNavigateStart}
+              arrow="back"
+              className="font-mono text-[10px] uppercase tracking-[0.18em]"
+            >
+              Return to Cover
+            </EditorialAction>
+          </div>
         )}
       </div>
-
-      {/* =======================================================================
-          ACCESSIBLE PLATE INSPECTION MODAL (High-Resolution View)
-          ======================================================================= */}
-      {activePlate && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label={activePlate.title}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-12 bg-ink/80 backdrop-blur-md animate-fade-in pointer-events-auto"
-          onClick={() => setActivePlate(null)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative max-w-4xl w-full max-h-[90vh] bg-paper-light border border-border archival-shadow flex flex-col md:flex-row overflow-hidden rounded-xs"
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setActivePlate(null)}
-              aria-label="Close plate inspection"
-              className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-paper/90 border border-border text-ink hover:text-terracotta transition-colors flex items-center justify-center"
-            >
-              <X size={15} />
-            </button>
-
-            {/* Illustration Viewport */}
-            <div className="relative w-full md:w-3/5 h-64 md:h-auto min-h-[280px] md:min-h-[440px] bg-paper-dark">
-              <Image
-                src={activePlate.src}
-                alt={activePlate.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 60vw"
-                className="object-cover"
-                priority
-              />
-            </div>
-
-            {/* Archival Information Panel */}
-            <div className="w-full md:w-2/5 p-6 md:p-8 flex flex-col justify-between overflow-y-auto bg-paper-light">
-              <div>
-                <div className="flex items-center gap-2 text-terracotta text-[10px] uppercase tracking-widest font-mono pb-2 border-b border-border font-semibold">
-                  <span>{activePlate.plate}</span>
-                  <span className="text-border">·</span>
-                  <span className="text-ink-muted">ARCHIVAL EXHIBIT</span>
-                </div>
-
-                <h3 className="font-serif italic text-2xl md:text-3xl text-ink font-light mt-3 tracking-tight">
-                  {activePlate.title}
-                </h3>
-                <div className="text-ink-muted font-mono text-[9.5px] uppercase tracking-wider mt-0.5">
-                  {activePlate.subtitle}
-                </div>
-
-                <p className="mt-3.5 font-sans text-xs text-ink/90 leading-relaxed font-light">
-                  {activePlate.story}
-                </p>
-              </div>
-
-              <div className="mt-5 pt-3.5 border-t border-border space-y-1.5 text-[9.5px] font-mono text-ink-muted">
-                <div className="flex justify-between">
-                  <span>LOCATION:</span>
-                  <span className="text-ink">{activePlate.detailedSpecs.location}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>ELEVATION:</span>
-                  <span className="text-ink">{activePlate.detailedSpecs.elevation}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>SOIL PROFILE:</span>
-                  <span className="text-ink">{activePlate.detailedSpecs.soilType}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>PLANTING ERA:</span>
-                  <span className="text-ink">{activePlate.detailedSpecs.plantingEra}</span>
-                </div>
-
-                <div className="pt-3">
-                  <button
-                    onClick={() => setActivePlate(null)}
-                    className="w-full py-2 text-[9.5px] font-mono uppercase tracking-widest text-ink hover:text-paper-light bg-paper hover:bg-ink border border-border transition-colors text-center rounded-xs"
-                  >
-                    Close Inspection [ESC]
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-// Bespoke Hand-Crafted Wooden Peg Graphic
+/** Crisp Wooden Clothespin centered squarely onto the cord vertex (50%, 0px) */
 function WoodenPeg() {
   return (
-    <svg className="w-4 h-6 drop-shadow-sm" viewBox="0 0 16 24" fill="none">
+    <svg className="w-4 h-6 drop-shadow-sm" viewBox="0 0 16 24" fill="none" aria-hidden="true">
       <rect
         x="4"
         y="0"
         width="8"
-        height="18"
+        height="20"
         rx="1"
         fill="#C49A6C"
         stroke="#8A6540"
         strokeWidth="0.8"
       />
-      <line x1="6.5" y1="2" x2="6.5" y2="16" stroke="#A87F53" strokeWidth="0.6" />
+      <line x1="6.5" y1="2" x2="6.5" y2="18" stroke="#A87F53" strokeWidth="0.6" />
       <rect
         x="2.5"
-        y="8"
+        y="10"
         width="11"
-        height="3"
+        height="3.2"
         rx="0.8"
         fill="#5E5A54"
         stroke="#3B3834"
         strokeWidth="0.6"
       />
-      <line x1="4" y1="18" x2="12" y2="18" stroke="#5A3E25" strokeWidth="1.2" />
+      <line x1="4" y1="14" x2="12" y2="14" stroke="#5A3E25" strokeWidth="1" />
     </svg>
   );
 }
