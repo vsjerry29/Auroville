@@ -133,12 +133,14 @@ export default function Chapter02PageOpens({
           Pointer parallax ramps cleanly from 0 after handoff so scale=1 frame matches 1:1.
           ===================================================================== */}
       <div
-        className="absolute inset-0 w-full h-full"
-        style={{
-          transform: `translate(${pointerOffset.x * 0.25 * ch02PostHandoffRamp}px, ${
-            pointerOffset.y * 0.2 * ch02PostHandoffRamp
-          }px)`,
-        }}
+        className="matrimandir-stage-canvas absolute"
+        style={
+          {
+            "--expand": 1,
+            marginLeft: `${pointerOffset.x * 0.25 * ch02PostHandoffRamp}px`,
+            marginTop: `${pointerOffset.y * 0.2 * ch02PostHandoffRamp}px`,
+          } as React.CSSProperties
+        }
       >
         {/* LAYER 01: ARCHITECTURAL PENCIL SKETCH (Warm ivory drafting paper + graphite linework) */}
         <div className="absolute inset-0 w-full h-full">
@@ -219,6 +221,65 @@ export default function Chapter02PageOpens({
             />
           </div>
         )}
+
+        {/* Mobile Vertical Paper Feather Envelope (blends portrait focal band softly into #F6F3EB paper) */}
+        <div
+          className="md:hidden pointer-events-none absolute inset-0 z-10 [@media(max-height:520px)]:hidden"
+          style={{
+            background:
+              "linear-gradient(to bottom, #F6F3EB 0%, rgba(246,243,235,0.68) 9%, transparent 21%, transparent 80%, rgba(246,243,235,0.68) 91%, #F6F3EB 100%)",
+          }}
+          aria-hidden="true"
+        />
+
+        {/* INTERACTIVE SUBJECT DISCOVERY TARGETS (Inside Aligned Coordinate Space) */}
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Inspect Matrimandir Geodesic Dome"
+          onMouseEnter={() => setIsHoveringDome(true)}
+          onMouseLeave={() => setIsHoveringDome(false)}
+          onClick={() => setActiveDiscovery(activeDiscovery === "dome" ? null : "dome")}
+          className="absolute top-[19%] left-1/2 -translate-x-1/2 w-[30%] aspect-square rounded-full cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
+        >
+          {isHoveringDome && activeDiscovery !== "dome" && (
+            <div className="hidden md:block absolute top-[10%] left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
+              <InlineLabel accent="gold">The Geodesic Sphere · 1,415 Gilded Discs</InlineLabel>
+            </div>
+          )}
+        </div>
+
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Inspect White Marble Lotus Plaza"
+          onMouseEnter={() => setIsHoveringLotus(true)}
+          onMouseLeave={() => setIsHoveringLotus(false)}
+          onClick={() => setActiveDiscovery(activeDiscovery === "lotus" ? null : "lotus")}
+          className="absolute bottom-[10%] left-1/2 -translate-x-1/2 w-[26%] h-[12%] cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
+        >
+          {isHoveringLotus && activeDiscovery !== "lotus" && (
+            <div className="hidden md:block absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
+              <InlineLabel accent="terracotta">Lotus Amphitheater · Marble Floor</InlineLabel>
+            </div>
+          )}
+        </div>
+
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label="Inspect Framing Forest Canopy"
+          onMouseEnter={() => setIsHoveringCanopy(true)}
+          onMouseLeave={() => setIsHoveringCanopy(false)}
+          onClick={() => setActiveDiscovery(activeDiscovery === "canopy" ? null : "canopy")}
+          className="absolute top-[3%] left-[22%] md:left-0 w-[20%] md:w-[24%] h-[24%] cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
+        >
+          {isHoveringCanopy && activeDiscovery !== "canopy" && (
+            <div className="hidden md:block absolute bottom-2 left-8 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
+              <InlineLabel accent="forest">Indigenous Canopy · Ficus &amp; Neem</InlineLabel>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* =====================================================================
@@ -240,69 +301,13 @@ export default function Chapter02PageOpens({
       )}
 
       {/* =====================================================================
-          INTERACTIVE SUBJECT DISCOVERY ZONES (Natural Artwork Hit Targets)
-          Zero permanent hotspot dots or target rings.
-          ===================================================================== */}
-
-      {/* 1. Matrimandir Golden Dome Target */}
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Inspect Matrimandir Geodesic Dome"
-        onMouseEnter={() => setIsHoveringDome(true)}
-        onMouseLeave={() => setIsHoveringDome(false)}
-        onClick={() => setActiveDiscovery(activeDiscovery === "dome" ? null : "dome")}
-        className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[38vw] max-w-[520px] aspect-square rounded-full cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
-      >
-        {isHoveringDome && activeDiscovery !== "dome" && (
-          <div className="absolute top-[10%] left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
-            <InlineLabel accent="gold">The Geodesic Sphere · 1,415 Gilded Discs</InlineLabel>
-          </div>
-        )}
-      </div>
-
-      {/* 2. Marble Lotus Amphitheater Target */}
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Inspect White Marble Lotus Plaza"
-        onMouseEnter={() => setIsHoveringLotus(true)}
-        onMouseLeave={() => setIsHoveringLotus(false)}
-        onClick={() => setActiveDiscovery(activeDiscovery === "lotus" ? null : "lotus")}
-        className="absolute bottom-[6%] left-1/2 -translate-x-1/2 w-[28vw] max-w-[380px] h-[12vh] cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
-      >
-        {isHoveringLotus && activeDiscovery !== "lotus" && (
-          <div className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
-            <InlineLabel accent="terracotta">Lotus Amphitheater · Marble Floor</InlineLabel>
-          </div>
-        )}
-      </div>
-
-      {/* 3. Framing Tree Canopy Target */}
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label="Inspect Framing Forest Canopy"
-        onMouseEnter={() => setIsHoveringCanopy(true)}
-        onMouseLeave={() => setIsHoveringCanopy(false)}
-        onClick={() => setActiveDiscovery(activeDiscovery === "canopy" ? null : "canopy")}
-        className="absolute top-0 left-0 w-[28vw] max-w-[360px] h-[28vh] cursor-pointer z-25 focus-visible:outline focus-visible:outline-2 focus-visible:outline-terracotta"
-      >
-        {isHoveringCanopy && activeDiscovery !== "canopy" && (
-          <div className="absolute bottom-2 left-12 whitespace-nowrap bg-paper/85 backdrop-blur-[2px] px-2.5 py-0.5 pointer-events-none transition-opacity duration-200">
-            <InlineLabel accent="forest">Indigenous Canopy · Ficus &amp; Neem</InlineLabel>
-          </div>
-        )}
-      </div>
-
-      {/* =====================================================================
           INTEGRATED DISCOVERY DIALOGS (Restrained Archival Marginalia Notes)
           ===================================================================== */}
       {activeDiscovery === "dome" && (
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute z-40 top-20 right-8 md:right-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border p-5 animate-fade-in"
+          className="absolute z-40 bottom-16 inset-x-4 md:inset-x-auto md:bottom-auto md:top-20 md:right-16 max-w-xs mx-auto md:mx-0 bg-paper-light/95 backdrop-blur-md border border-border p-4 md:p-5 animate-fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-border/80">
             <InlineLabel accent="gold">Peace Area · 36m Sphere</InlineLabel>
@@ -323,7 +328,7 @@ export default function Chapter02PageOpens({
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute z-40 bottom-24 right-8 md:right-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border p-5 animate-fade-in"
+          className="absolute z-40 bottom-16 inset-x-4 md:inset-x-auto md:bottom-24 md:right-16 max-w-xs mx-auto md:mx-0 bg-paper-light/95 backdrop-blur-md border border-border p-4 md:p-5 animate-fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-border/80">
             <InlineLabel accent="terracotta">Amphitheater Plaza</InlineLabel>
@@ -344,7 +349,7 @@ export default function Chapter02PageOpens({
         <div
           role="dialog"
           aria-modal="true"
-          className="absolute z-40 top-24 left-8 md:left-16 max-w-xs bg-paper-light/95 backdrop-blur-md border border-border p-5 animate-fade-in"
+          className="absolute z-40 bottom-16 inset-x-4 md:inset-x-auto md:bottom-auto md:top-24 md:left-16 max-w-xs mx-auto md:mx-0 bg-paper-light/95 backdrop-blur-md border border-border p-4 md:p-5 animate-fade-in"
         >
           <div className="flex items-center justify-between pb-2 border-b border-border/80">
             <InlineLabel accent="forest">Ecological Regeneration</InlineLabel>
@@ -365,7 +370,7 @@ export default function Chapter02PageOpens({
           QUIET EDITORIAL STATEMENT (Unboxed Paper Underlay, Zero Card Chrome)
           ===================================================================== */}
       <div
-        className="absolute z-30 left-6 md:left-12 bottom-6 md:bottom-8 max-w-lg pointer-events-none transition-all duration-500"
+        className="absolute z-30 left-5 right-5 md:right-auto md:left-12 bottom-5 md:bottom-8 max-w-lg pointer-events-none transition-all duration-500"
         style={{
           opacity: activeDiscovery ? 0 : statementOpacity,
           transform: `translateY(${(1 - statementEnter) * 10}px)`,

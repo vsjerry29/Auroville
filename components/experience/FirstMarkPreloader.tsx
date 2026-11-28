@@ -206,7 +206,7 @@ export default function FirstMarkPreloader() {
     >
       <svg
         viewBox="0 0 1440 900"
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio="xMidYMid meet"
         className="w-full h-full pointer-events-none"
         aria-hidden="true"
       >

@@ -52,6 +52,8 @@ export default function Chapter06WaterStory({
   const [ripples, setRipples] = useState<TapRipple[]>([]);
   const nextRippleId = useRef(1);
   const cutawayBoxRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const panelContainerRef = useRef<HTMLDivElement>(null);
 
   // Two-layer Frog GSAP Architecture:
   //   - frogWorldPosRef (outer): ground plane (x, y) ONLY
@@ -106,43 +108,75 @@ export default function Chapter06WaterStory({
     };
 
     const clampFrogToBounds = (rawX: number, rawY: number): { x: number; y: number } => {
-      // Intersect static artwork habitat bounds with currently visible viewport SVG box
-      const topLeft = toSvgCoords(28, 78);
-      const bottomRight = toSvgCoords(window.innerWidth - 28, window.innerHeight - 28);
+      const svgRect = svgEl.getBoundingClientRect();
+      if (!svgRect.width || !svgRect.height) {
+        return { x: Math.max(380, Math.min(1010, rawX)), y: Math.max(240, Math.min(635, rawY)) };
+      }
+
+      // Compute visible bounds relative to svgEl itself so scrollY off-screen never skews mount clamping
+      const topLeft = toSvgCoords(svgRect.left + 24, svgRect.top + 72);
+      const bottomRight = toSvgCoords(svgRect.right - 24, svgRect.bottom - 24);
 
       const visMinX = topLeft ? Math.max(380, topLeft.x) : 380;
       const visMaxX = bottomRight ? Math.min(1010, bottomRight.x) : 1010;
       const visMinY = topLeft ? Math.max(240, topLeft.y) : 240;
       const visMaxY = bottomRight ? Math.min(635, bottomRight.y) : 635;
 
-      const minX = Math.min(visMinX, visMaxX - 20);
-      const maxX = Math.max(visMinX + 20, visMaxX);
-      const minY = Math.min(visMinY, visMaxY - 20);
-      const maxY = Math.max(visMinY + 20, visMaxY);
+      // Dynamically compute live clearance below headline & above cutaway panel
+      let safeMinY = visMinY;
+      let safeMaxY = visMaxY;
+
+      const hRect = headerRef.current?.getBoundingClientRect();
+      if (hRect && hRect.width > 0 && window.innerWidth < 768) {
+        const relBot = svgRect.top + (hRect.bottom - svgRect.top) + 18;
+        const relRight = svgRect.left + (hRect.right - svgRect.left) + 16;
+        const hBotRight = toSvgCoords(relRight, relBot);
+        if (hBotRight) {
+          safeMinY = Math.max(safeMinY, hBotRight.y);
+        }
+      }
+
+      const pRect = panelContainerRef.current?.getBoundingClientRect();
+      if (pRect && pRect.width > 0 && window.innerWidth < 768) {
+        const relTop = svgRect.top + (pRect.top - svgRect.top) - 22;
+        const relLeft = svgRect.left + (pRect.left - svgRect.left);
+        const pTopLeft = toSvgCoords(relLeft, relTop);
+        if (pTopLeft) {
+          safeMaxY = Math.min(safeMaxY, pTopLeft.y);
+        }
+      }
+
+      const minX = Math.min(visMinX, visMaxX - 24);
+      const maxX = Math.max(visMinX + 24, visMaxX);
+      const minY = Math.min(safeMinY, safeMaxY - 24);
+      const maxY = Math.max(safeMinY + 24, safeMaxY);
 
       let cx = Math.max(minX, Math.min(maxX, rawX));
       let cy = Math.max(minY, Math.min(maxY, rawY));
 
-      // Keep clear of top-left editorial heading region & bottom-left cutaway box
-      if (cx < 385 && cy < 365) {
-        if (385 - cx < 365 - cy) {
-          cx = 385;
-        } else {
-          cy = 365;
+      // Keep clear of top-left editorial heading region & bottom-left cutaway box on desktop/tablet
+      if (window.innerWidth >= 768) {
+        if (cx < 385 && cy < 365) {
+          if (385 - cx < 365 - cy) {
+            cx = 385;
+          } else {
+            cy = 365;
+          }
         }
-      }
-      if (cx < 505 && cy > 468) {
-        if (505 - cx < cy - 468) {
-          cx = 505;
-        } else {
-          cy = 468;
+        if (cx < 505 && cy > 468) {
+          if (505 - cx < cy - 468) {
+            cx = 505;
+          } else {
+            cy = 468;
+          }
         }
       }
 
       return { x: cx, y: cy };
     };
 
-    let currentPos = { ...FROG_HOME };
+    const initialHome = clampFrogToBounds(FROG_HOME.x, FROG_HOME.y);
+    let currentPos = { ...initialHome };
     let currentFacing = -1; // -1 faces left across basin, +1 faces right
     let latestClient: { x: number; y: number } | null = null;
     let returningHome = false;
@@ -163,8 +197,8 @@ export default function Chapter06WaterStory({
       }
     };
 
-    // Place frog cleanly at resting stone/reed bank home spot
-    gsap.set(worldEl, { x: FROG_HOME.x, y: FROG_HOME.y });
+    // Place frog cleanly inside visible resting bank bounds
+    gsap.set(worldEl, { x: initialHome.x, y: initialHome.y });
     gsap.set(hopArcEl, { y: 0 });
     gsap.set(spriteEl, { scaleX: -1, scaleY: 1, transformOrigin: "50% 88%" });
     gsap.set(shadowEllipseEl, { scale: 1, opacity: 0.22, transformOrigin: "50% 50%" });
@@ -222,9 +256,10 @@ export default function Chapter06WaterStory({
         isHopping = false;
         returningHome = false;
         latestClient = null;
-        currentPos = { ...FROG_HOME };
+        const safeHome = clampFrogToBounds(FROG_HOME.x, FROG_HOME.y);
+        currentPos = { ...safeHome };
         currentFacing = -1;
-        gsap.set(worldEl, { x: FROG_HOME.x, y: FROG_HOME.y });
+        gsap.set(worldEl, { x: safeHome.x, y: safeHome.y });
         gsap.set(hopArcEl, { y: 0 });
         gsap.set(spriteEl, { scaleX: -1, scaleY: 1 });
         gsap.set(shadowEllipseEl, { scale: 1, opacity: 0.22 });
@@ -236,7 +271,7 @@ export default function Chapter06WaterStory({
 
         let target: { x: number; y: number } | null = null;
         if (returningHome) {
-          target = { ...FROG_HOME };
+          target = clampFrogToBounds(FROG_HOME.x, FROG_HOME.y);
         } else if (latestClient) {
           const freshSvg = toSvgCoords(latestClient.x, latestClient.y);
           if (freshSvg) {
@@ -595,7 +630,7 @@ export default function Chapter06WaterStory({
   return (
     <div
       ref={stageRef}
-      className="sticky top-0 w-full h-screen overflow-hidden select-none bg-paper text-ink"
+      className="sticky top-0 w-full h-[100dvh] overflow-hidden select-none bg-paper text-ink"
       onPointerMove={handleCanvasPointerMove}
       onPointerLeave={() => setCursorLocal(null)}
       onPointerDown={handleCanvasTap}
@@ -615,7 +650,7 @@ export default function Chapter06WaterStory({
           alt="Conceptual hand-illustrated water channel curving into a stepped terracotta catchment basin"
           fill
           sizes="100vw"
-          className="object-cover object-[58%_54%] md:object-center mix-blend-multiply"
+          className="object-cover object-center mix-blend-multiply"
           style={{
             filter: `grayscale(${(1 - colorWashFlow).toFixed(3)}) contrast(${(1.08 - colorWashFlow * 0.04).toFixed(3)}) brightness(1.03)`,
           }}
@@ -786,10 +821,10 @@ export default function Chapter06WaterStory({
 
       {/* Soft Top-Left Ivory Reading Halo + Bottom Handoff Veil */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[40vh] md:w-[34vw] md:h-[42vh]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[44dvh] md:w-[34vw] md:h-[42vh]"
         style={{
           background:
-            "radial-gradient(ellipse 88% 82% at 14% 18%, rgba(246, 243, 235, 0.96) 24%, rgba(246, 243, 235, 0.74) 55%, transparent 100%)",
+            "radial-gradient(ellipse 92% 85% at 14% 18%, rgba(246, 243, 235, 0.96) 24%, rgba(246, 243, 235, 0.78) 55%, transparent 100%)",
         }}
         aria-hidden="true"
       />
@@ -804,33 +839,37 @@ export default function Chapter06WaterStory({
       />
 
       {/* EDITORIAL HEADLINE + INTERACTIVE SOIL/WATER CUTAWAY EXPLORER */}
-      <div className="relative z-20 w-full h-full px-5 sm:px-8 md:px-14 pt-20 md:pt-24 pb-6 md:pb-8 flex flex-col justify-between pointer-events-none">
+      <div className="relative z-20 w-full h-full px-5 sm:px-8 md:px-14 pt-[66px] md:pt-24 pb-4 md:pb-8 [@media(max-height:520px)]:pt-14 flex flex-col justify-between pointer-events-none">
         <div
-          className="max-w-[240px] md:max-w-[265px]"
+          ref={headerRef}
+          className="max-w-[260px] md:max-w-[265px]"
           style={{
             opacity: headerOpacity,
             transform: `translate3d(0, ${(1 - smooth(0.15, 0.65, enterProgress)) * 12}px, 0)`,
           }}
         >
-          <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-2">
+          <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-1.5 md:mb-2">
             06 · The Water Story
           </div>
-          <h2 className="font-display text-[32px] sm:text-4xl md:text-[46px] lg:text-[50px] tracking-tight uppercase leading-[0.94] text-ink">
+          <h2 className="font-display text-[30px] sm:text-4xl md:text-[46px] lg:text-[50px] tracking-tight uppercase leading-[0.94] text-ink [@media(max-height:520px)]:text-2xl">
             WATER
             <br />
             THAT STAYS
           </h2>
-          <p className="mt-2.5 md:mt-3 font-sans text-xs md:text-[13px] text-ink/90 leading-relaxed font-light max-w-[23ch] text-pretty">
+          <p className="mt-2 md:mt-3 font-sans text-xs md:text-[13px] text-ink/90 leading-snug md:leading-relaxed font-light max-w-[25ch] text-pretty [@media(max-height:480px)]:hidden">
             Earthen contour bunds slow monsoon sheets into porous laterite seams.
           </p>
         </div>
 
         {/* Lower Row: Compact Draggable Soil/Water Cross-Section + Quiet Atlas Lead */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-2.5 md:gap-4">
           <div
+            ref={panelContainerRef}
             data-interactive-panel="true"
-            className={`pointer-events-auto border border-ink/55 bg-[#FCFAF6]/95 p-3 transition-all duration-300 ${
-              cutawayExpanded ? "w-full max-w-[490px]" : "w-full max-w-[375px]"
+            className={`pointer-events-auto border border-ink/55 bg-[#FCFAF6]/95 p-2.5 md:p-3 transition-all duration-300 ${
+              cutawayExpanded
+                ? "w-full max-w-[490px]"
+                : "w-full max-w-[355px] sm:max-w-[375px] [@media(max-height:520px)]:max-w-[285px]"
             }`}
             style={{
               opacity: smooth(0.36, 0.52, p) * (1 - smooth(0.80, 0.89, p)),
@@ -854,7 +893,7 @@ export default function Chapter06WaterStory({
                 if (e.key === "ArrowLeft") setBundPercent((v) => Math.max(0, v - 10));
               }}
               className={`relative w-full overflow-hidden border border-border/70 cursor-ew-resize touch-none ${
-                cutawayExpanded ? "aspect-[16/9]" : "aspect-[16/8.2]"
+                cutawayExpanded ? "aspect-[16/8.5] md:aspect-[16/9]" : "aspect-[16/6.4] md:aspect-[16/8.2]"
               }`}
             >
               <Image

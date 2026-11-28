@@ -107,9 +107,9 @@ export default function ExperienceFooter({
         const tl = gsap.timeline({
           scrollTrigger: {
             trigger: footerEl,
-            start: "top 95%",
-            end: "bottom 99%",
-            scrub: 0.3,
+            start: isMobile ? "top 92%" : "top 95%",
+            end: isMobile ? "bottom bottom" : "bottom 99%",
+            scrub: 0.25,
             refreshPriority: -1,
             invalidateOnRefresh: true,
           },
@@ -264,7 +264,7 @@ export default function ExperienceFooter({
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       aria-label="Auroville Illustrated Closing Footer"
-      className="relative w-full min-h-[540px] md:h-[84vh] md:min-h-[680px] max-h-[860px] overflow-hidden bg-paper text-ink border-t border-border/55 flex flex-col justify-between"
+      className="relative w-full min-h-[100svh] md:min-h-[100dvh] md:h-[100dvh] md:max-h-[980px] overflow-hidden bg-paper text-ink border-t border-border/55 flex flex-col justify-between"
     >
       {/* =====================================================================
           STAGE 01: ATLAS PATHWAY HANDOFF STROKE (connects Atlas directly to Footer Road)
@@ -289,22 +289,25 @@ export default function ExperienceFooter({
 
       {/* =====================================================================
           INDEPENDENT DEPTH LANDSCAPE LAYERS (A -> B -> C -> D)
+          On portrait mobile (< 768px), recomposed into the lower 58dvh canvas
+          so Banyan Tree, Terracotta Road, Distant Valley & Right Foliage remain
+          complete & un-cropped while upper negative-space sky holds typography.
           ===================================================================== */}
-      <div className="pointer-events-none absolute inset-0 w-full h-full overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[56dvh] min-h-[380px] md:inset-0 md:h-full overflow-hidden [@media(max-height:520px)]:inset-0 [@media(max-height:520px)]:h-full">
         {/* LAYER B (Distance): Low-contrast distant horizon & wooded valley */}
         <div
           ref={distantLayerRef}
           data-footer-layer="distant"
-          className="absolute inset-x-0 bottom-[2%] md:inset-0 w-full h-[92%] md:h-full will-change-transform"
+          className="absolute inset-0 w-full h-full will-change-transform"
           style={{ zIndex: 12 }}
         >
-          <div className="relative w-full h-full translate-y-[8%]">
+          <div className="relative w-full h-full translate-y-[6%] md:translate-y-[8%]">
             <Image
               src="/illustrated/footer/footer-distant.webp"
               alt=""
               fill
               sizes="100vw"
-              className="object-cover object-bottom"
+              className="object-cover object-[52%_bottom] md:object-bottom"
               priority
             />
           </div>
@@ -322,7 +325,7 @@ export default function ExperienceFooter({
             alt="Terracotta path winding through the Auroville landscape"
             fill
             sizes="100vw"
-            className="object-cover object-bottom"
+            className="object-cover object-[52%_bottom] md:object-bottom"
             priority
           />
         </div>
@@ -331,7 +334,7 @@ export default function ExperienceFooter({
         <div
           ref={banyanLayerRef}
           data-footer-layer="banyan"
-          className="hidden sm:block absolute inset-0 w-full h-full will-change-transform"
+          className="absolute inset-0 w-full h-full will-change-transform"
           style={{ zIndex: 16 }}
         >
           {/* Isolated inner parallax wrapper so cursor movement never overrides GSAP scroll Y */}
@@ -346,7 +349,7 @@ export default function ExperienceFooter({
               alt="Hand-drawn foreground banyan tree with spreading roots and arching canopy"
               fill
               sizes="100vw"
-              className="object-cover object-left-bottom"
+              className="object-cover object-[18%_bottom] md:object-left-bottom"
               priority
             />
           </div>
@@ -356,7 +359,7 @@ export default function ExperienceFooter({
         <div
           ref={rightFoliageLayerRef}
           data-footer-layer="right-foliage"
-          className="hidden md:block absolute inset-0 w-full h-full will-change-transform"
+          className="absolute inset-0 w-full h-full will-change-transform"
           style={{ zIndex: 17 }}
         >
           <div
@@ -370,23 +373,32 @@ export default function ExperienceFooter({
               alt=""
               fill
               sizes="100vw"
-              className="object-cover object-right-bottom"
+              className="object-cover object-[88%_bottom] md:object-right-bottom"
               priority
             />
           </div>
         </div>
+
+        {/* Soft Top Feather Blending Landscape Into Warm Sky Sky Clearing On Mobile */}
+        <div
+          className="md:hidden pointer-events-none absolute inset-x-0 top-0 h-20 z-[18]"
+          style={{
+            background: "linear-gradient(to bottom, #F6F3EB 0%, rgba(246, 243, 235, 0.45) 55%, transparent 100%)",
+          }}
+          aria-hidden="true"
+        />
       </div>
 
       {/* =====================================================================
           LAYER E: PURE HTML TYPOGRAPHY & ACCESSIBLE CONTROLS ABOVE ARTWORK
-          Anchored safely in the generous open ivory sky center-right clearing
+          Anchored safely in the generous open ivory sky clearing
           ===================================================================== */}
-      <div className="relative z-20 flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 md:px-14 pt-12 md:pt-16 pb-8 md:pb-10 flex flex-col justify-between">
+      <div className="relative z-20 flex-1 w-full max-w-7xl mx-auto px-5 sm:px-8 md:px-14 pt-[76px] md:pt-16 pb-8 md:pb-10 [@media(max-height:520px)]:pt-14 flex flex-col justify-start md:justify-between">
         {/* Top/Center Serene Negative-Space Clearing for Signature Wordmark */}
-        <div className="my-auto pt-8 sm:pt-14 md:pt-16 md:pl-[14%] lg:pl-[16%] flex flex-col items-start">
-          <div className="overflow-hidden">
+        <div className="md:my-auto pt-2 sm:pt-8 md:pt-16 md:pl-[14%] lg:pl-[16%] flex flex-col items-start">
+          <div className="overflow-hidden max-w-full">
             <div ref={wordmarkRevealRef} className="will-change-transform">
-              <h2 className="font-display text-[15vw] sm:text-[11.2vw] md:text-[9.6vw] lg:text-[118px] xl:text-[134px] tracking-tighter2 uppercase leading-[0.84] text-ink select-none whitespace-nowrap">
+              <h2 className="font-display text-[clamp(2.65rem,14.8vw,4.5rem)] sm:text-[11.2vw] md:text-[9.6vw] lg:text-[118px] xl:text-[134px] tracking-tighter2 uppercase leading-[0.84] text-ink select-none whitespace-nowrap">
                 AUROVILLE
               </h2>
             </div>
@@ -394,18 +406,18 @@ export default function ExperienceFooter({
 
           <div
             ref={supportingRowRef}
-            className="mt-4 md:mt-5 w-full md:pr-20 lg:pr-24 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            className="mt-3 sm:mt-4 md:mt-5 w-full md:pr-20 lg:pr-24 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
           >
-            <p className="font-serif italic text-xl sm:text-2xl md:text-3xl text-ink font-light leading-tight">
+            <p className="font-serif italic text-xl sm:text-2xl md:text-3xl text-ink font-light leading-tight sm:whitespace-nowrap">
               A place still becoming.
             </p>
 
-            <div className="flex flex-wrap items-center gap-6 sm:gap-8">
+            <div className="flex flex-wrap items-center gap-5 sm:gap-8">
               <EditorialAction
                 onClick={onBackToBeginning}
                 ariaLabel="Back to beginning"
                 arrow="up"
-                className="font-mono text-[10px] uppercase tracking-[0.18em] font-semibold bg-paper/75 backdrop-blur-[1px]"
+                className="font-mono text-[10px] uppercase tracking-[0.18em] font-semibold bg-paper/80 backdrop-blur-[1px]"
               >
                 Back to beginning
               </EditorialAction>
@@ -415,7 +427,7 @@ export default function ExperienceFooter({
                 target="_blank"
                 rel="noopener noreferrer"
                 arrow="up-right"
-                className="font-sans text-xs sm:text-sm font-medium bg-paper/75 backdrop-blur-[1px]"
+                className="font-sans text-xs sm:text-sm font-medium bg-paper/80 backdrop-blur-[1px]"
               >
                 Made by Suriya
               </EditorialAction>

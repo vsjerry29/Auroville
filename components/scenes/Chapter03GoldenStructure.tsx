@@ -169,26 +169,26 @@ export default function Chapter03GoldenStructure({
             =================================================================== */}
         <section
           aria-label="Story 01: Imagined"
-          className="relative shrink-0 w-[100vw] h-full px-6 md:px-14 pt-20 md:pt-24 pb-8 md:pb-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8"
+          className="relative shrink-0 w-[100vw] h-full px-5 sm:px-8 md:px-14 pt-[clamp(66px,9dvh,86px)] md:pt-24 pb-[clamp(16px,2.5dvh,28px)] md:pb-10 [@media(max-height:520px)]:pt-14 [@media(max-height:520px)]:pb-3 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-8"
         >
           {/* Left Unified Cluster: 01/ Copy + Supporting Studies Nestled Toward Center */}
-          <div className="relative w-full md:w-[39%] h-auto md:h-[74vh] flex flex-col justify-between z-10">
-            <div className="flex items-start gap-4 max-w-sm">
-              <span className="font-sans font-light text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
+          <div className="relative w-full md:w-[39%] h-auto md:h-[74dvh] [@media(max-height:520px)]:h-auto flex flex-col justify-between z-10 shrink-0">
+            <div className="flex items-start gap-3.5 md:gap-4 max-w-sm">
+              <span className="font-sans font-light text-3xl sm:text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
                 01<span className="text-terracotta/85 font-extralight">/</span>
               </span>
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-1">
                   Imagined
                 </div>
-                <p className="font-sans text-xs md:text-[13px] text-ink/85 leading-relaxed font-light text-pretty max-w-[30ch]">
+                <p className="font-sans text-[12.5px] md:text-[13px] text-ink/85 leading-snug md:leading-relaxed font-light text-pretty max-w-[33ch]">
                   Before stone or metal, the sanctuary existed purely as geometry—arcs compassed over red dust to house quietude.
                 </p>
               </div>
             </div>
 
             {/* Desktop Clustered Supporting Studies (Compact, Subordinate, Connected) */}
-            <div className="hidden md:block relative w-full flex-1 mt-4">
+            <div className="hidden md:block [@media(max-height:520px)]:hidden relative w-full flex-1 mt-4">
               {/* Support A (upper-right overlapping edge near dominant elevation) */}
               <div
                 className="absolute top-[4%] right-[0%] w-[14.5vw] max-w-[205px] aspect-[1376/768] overflow-hidden bg-paper-light/90 border border-border/50 archival-shadow-subtle z-20"
@@ -229,7 +229,7 @@ export default function Chapter03GoldenStructure({
           </div>
 
           {/* Dominant Visual Focal Anchor: Massive Matrimandir Geodesic Sphere */}
-          <div className="relative w-full md:w-[58%] h-[42vh] md:h-[75vh] flex items-center justify-end">
+          <div className="relative w-full md:w-[58%] aspect-[16/10] max-h-[36dvh] md:aspect-auto md:h-[75dvh] md:max-h-none [@media(max-height:520px)]:aspect-auto [@media(max-height:520px)]:h-[calc(100dvh-76px)] flex items-center justify-end">
             <div
               className="relative w-full h-full max-h-[680px] overflow-hidden bg-[#F1ECE1] border border-border/45 archival-shadow-subtle"
               style={{
@@ -251,9 +251,15 @@ export default function Chapter03GoldenStructure({
             </div>
           </div>
 
-          {/* Mobile Compact Supports */}
-          <div className="flex md:hidden items-center gap-3 w-full">
-            <div className="relative w-1/2 aspect-[1376/768] overflow-hidden bg-paper-light border border-border/45">
+          {/* Mobile Staggered Portrait Supporting Pair (Animated Reveal In View) */}
+          <div className="flex md:hidden items-end gap-3 w-full max-h-[19dvh] shrink-0">
+            <div
+              className="relative w-[46%] aspect-[16/10] overflow-hidden bg-paper-light border border-border/45"
+              style={{
+                transform: `translate3d(0, ${(1 - sup01Graphite) * 14}px, 0)`,
+                clipPath: `inset(${(1 - sup01Graphite) * 28}% 0% 0% ${(1 - sup01Graphite) * 24}%)`,
+              }}
+            >
               <Image
                 src="/illustrated/ch03-structure/matrimandir-outline.webp"
                 alt="Structural lines"
@@ -262,12 +268,18 @@ export default function Chapter03GoldenStructure({
                 className="object-cover"
               />
             </div>
-            <div className="relative w-1/2 aspect-[1376/768] overflow-hidden bg-paper-light border border-border/45">
+            <div
+              className="relative w-[54%] aspect-[16/10] overflow-hidden bg-paper-light border border-border/45"
+              style={{
+                transform: `translate3d(0, ${(1 - sup01Galaxy) * 14}px, 0)`,
+                clipPath: `inset(0% ${(1 - sup01Galaxy) * 32}% 0% 0%)`,
+              }}
+            >
               <Image
                 src="/art/architecture/galaxy-plan.webp"
                 alt="Galaxy radial concept"
                 fill
-                sizes="45vw"
+                sizes="52vw"
                 className="object-cover"
               />
             </div>
@@ -282,26 +294,26 @@ export default function Chapter03GoldenStructure({
             =================================================================== */}
         <section
           aria-label="Story 02: Made"
-          className="relative shrink-0 w-[100vw] h-full px-6 md:px-14 pt-20 md:pt-24 pb-8 md:pb-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8"
+          className="relative shrink-0 w-[100vw] h-full px-5 sm:px-8 md:px-14 pt-[clamp(66px,9dvh,86px)] md:pt-24 pb-[clamp(16px,2.5dvh,28px)] md:pb-10 [@media(max-height:520px)]:pt-14 [@media(max-height:520px)]:pb-3 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-8"
         >
           {/* Left Unified Cluster: 02/ Editorial Copy + Two Staggered Workshop Supports */}
-          <div className="relative w-full md:w-[41%] h-auto md:h-[74vh] flex flex-col justify-between z-10">
-            <div className="flex items-start gap-4 max-w-sm">
-              <span className="font-sans font-light text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
+          <div className="relative w-full md:w-[41%] h-auto md:h-[74dvh] [@media(max-height:520px)]:h-auto flex flex-col justify-between z-10 shrink-0">
+            <div className="flex items-start gap-3.5 md:gap-4 max-w-sm">
+              <span className="font-sans font-light text-3xl sm:text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
                 02<span className="text-terracotta/85 font-extralight">/</span>
               </span>
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-1">
                   Made
                 </div>
-                <p className="font-sans text-xs md:text-[13px] text-ink/85 leading-relaxed font-light text-pretty max-w-[31ch]">
+                <p className="font-sans text-[12.5px] md:text-[13px] text-ink/85 leading-snug md:leading-relaxed font-light text-pretty max-w-[33ch]">
                   In open-air workshops, hands bent timber formwork and steel ribs before 1,415 hand-gilded discs sheathed the sphere.
                 </p>
               </div>
             </div>
 
             {/* Desktop Staggered Supporting Pair — Never Detached From Text */}
-            <div className="hidden md:block relative w-full flex-1 mt-4">
+            <div className="hidden md:block [@media(max-height:520px)]:hidden relative w-full flex-1 mt-4">
               {/* Support A (first beat: workshop artisans table) */}
               <div
                 className="relative mt-[8vh] w-[25vw] max-w-[355px] aspect-[1200/896] overflow-hidden border border-border/50 archival-shadow-subtle"
@@ -348,7 +360,7 @@ export default function Chapter03GoldenStructure({
           </div>
 
           {/* Dominant Right Artwork: Vertical Architectural Aperture Expanding Into Golden Discs */}
-          <div className="relative w-full md:w-[56%] h-[42vh] md:h-[75vh] flex items-center justify-end">
+          <div className="relative w-full md:w-[56%] aspect-[16/10] max-h-[36dvh] md:aspect-auto md:h-[75dvh] md:max-h-none [@media(max-height:520px)]:aspect-auto [@media(max-height:520px)]:h-[calc(100dvh-76px)] flex items-center justify-end">
             <div
               className="relative w-full h-full max-h-[680px] overflow-hidden archival-shadow-subtle"
               style={{
@@ -370,18 +382,30 @@ export default function Chapter03GoldenStructure({
             </div>
           </div>
 
-          {/* Mobile Compact Workshop Pair */}
-          <div className="flex md:hidden items-center gap-3 w-full">
-            <div className="relative w-1/3 aspect-[716/768] overflow-hidden bg-paper-light border border-border/45">
+          {/* Mobile Staggered Workshop Pair (Animated Reveal In View) */}
+          <div className="flex md:hidden items-end gap-3 w-full max-h-[19dvh] shrink-0">
+            <div
+              className="relative w-[36%] aspect-[716/768] max-h-[18dvh] overflow-hidden bg-paper-light border border-border/45"
+              style={{
+                transform: `translate3d(0, ${(1 - open02Draft) * 14}px, 0)`,
+                clipPath: `inset(0% 0% ${(1 - open02Draft) * 38}% 0%)`,
+              }}
+            >
               <Image
                 src="/art/people/architect.webp"
                 alt="Drafting plans"
                 fill
-                sizes="30vw"
-                className="object-contain"
+                sizes="34vw"
+                className="object-contain p-1"
               />
             </div>
-            <div className="relative w-2/3 aspect-[1200/896] overflow-hidden border border-border/45">
+            <div
+              className="relative w-[64%] aspect-[1200/896] max-h-[18dvh] overflow-hidden border border-border/45"
+              style={{
+                transform: `translate3d(0, ${(1 - open02Work) * 14}px, 0)`,
+                clipPath: `inset(${(1 - open02Work) * 26}% 0% 0% ${(1 - open02Work) * 18}%)`,
+              }}
+            >
               <Image
                 src="/illustrated/ch03-structure/ch03-frame-b-making.webp"
                 alt="Workshop formwork assembly"
@@ -401,25 +425,25 @@ export default function Chapter03GoldenStructure({
             =================================================================== */}
         <section
           aria-label="Story 03: Realized"
-          className="relative shrink-0 w-[100vw] h-full px-6 md:px-14 pt-20 md:pt-24 pb-8 md:pb-10 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-8"
+          className="relative shrink-0 w-[100vw] h-full px-5 sm:px-8 md:px-14 pt-[clamp(66px,9dvh,86px)] md:pt-24 pb-[clamp(16px,2.5dvh,28px)] md:pb-10 [@media(max-height:520px)]:pt-14 [@media(max-height:520px)]:pb-3 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-8"
         >
           {/* Left Column: 03/ Copy + Introducing Courtyard & Geometric Study Pair */}
-          <div className="relative w-full md:w-[41%] h-auto md:h-[74vh] flex flex-col justify-between z-10">
-            <div className="flex items-start gap-4 max-w-sm">
-              <span className="font-sans font-light text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
+          <div className="relative w-full md:w-[41%] h-auto md:h-[74dvh] [@media(max-height:520px)]:h-auto flex flex-col justify-between z-10 shrink-0">
+            <div className="flex items-start gap-3.5 md:gap-4 max-w-sm">
+              <span className="font-sans font-light text-3xl sm:text-4xl md:text-5xl tracking-tight text-ink leading-none select-none shrink-0">
                 03<span className="text-terracotta/85 font-extralight">/</span>
               </span>
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold mb-1">
                   Realized
                 </div>
-                <p className="font-sans text-xs md:text-[13px] text-ink/85 leading-relaxed font-light text-pretty max-w-[31ch]">
+                <p className="font-sans text-[12.5px] md:text-[13px] text-ink/85 leading-snug md:leading-relaxed font-light text-pretty max-w-[33ch]">
                   Completed after thirty-seven years, the sphere now stands amidst twelve gardens and the young forest below.
                 </p>
               </div>
             </div>
 
-            <div className="hidden md:block relative w-full flex-1 mt-4">
+            <div className="hidden md:block [@media(max-height:520px)]:hidden relative w-full flex-1 mt-4">
               {/* First Introduction Beat: Completed courtyard & red sandstone ramps */}
               <div
                 className="relative mt-[8vh] w-[25vw] max-w-[360px] aspect-[1376/768] overflow-hidden border border-border/50 archival-shadow-subtle"
@@ -462,7 +486,7 @@ export default function Chapter03GoldenStructure({
           </div>
 
           {/* Dominant Final Visual Payoff: Evergreen Forest Panorama Unfolds to Complete Stop */}
-          <div className="relative w-full md:w-[56%] h-[42vh] md:h-[75vh] flex items-center justify-end">
+          <div className="relative w-full md:w-[56%] aspect-[16/10] max-h-[36dvh] md:aspect-auto md:h-[75dvh] md:max-h-none [@media(max-height:520px)]:aspect-auto [@media(max-height:520px)]:h-[calc(100dvh-76px)] flex items-center justify-end">
             <div
               className="relative w-full h-full max-h-[680px] overflow-hidden archival-shadow-subtle"
               style={{
@@ -484,9 +508,15 @@ export default function Chapter03GoldenStructure({
             </div>
           </div>
 
-          {/* Mobile Compact Lower Pairing */}
-          <div className="flex md:hidden items-center gap-3 w-full">
-            <div className="relative w-3/5 aspect-[1376/768] overflow-hidden border border-border/45">
+          {/* Mobile Compact Staggered Lower Pairing */}
+          <div className="flex md:hidden items-end gap-3 w-full max-h-[19dvh] shrink-0">
+            <div
+              className="relative w-[58%] aspect-[16/10] overflow-hidden border border-border/45"
+              style={{
+                transform: `translate3d(0, ${(1 - open03Courtyard) * 14}px, 0)`,
+                clipPath: `inset(0% ${(1 - open03Courtyard) * 32}% 0% 0%)`,
+              }}
+            >
               <Image
                 src="/illustrated/ch02-page/matrimandir-illustrated.jpg"
                 alt="Completed Matrimandir"
@@ -495,12 +525,18 @@ export default function Chapter03GoldenStructure({
                 className="object-cover"
               />
             </div>
-            <div className="relative w-2/5 aspect-[1376/768] overflow-hidden bg-paper-light border border-border/45">
+            <div
+              className="relative w-[42%] aspect-[16/10] overflow-hidden bg-paper-light border border-border/45"
+              style={{
+                transform: `translate3d(0, ${(1 - open03Study) * 14}px, 0)`,
+                clipPath: `inset(${(1 - open03Study) * 34}% 0% 0% 0%)`,
+              }}
+            >
               <Image
                 src="/art/architecture/matrimandir-study.webp"
                 alt="Concept elevation"
                 fill
-                sizes="35vw"
+                sizes="40vw"
                 className="object-contain p-1"
               />
             </div>

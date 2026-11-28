@@ -41,7 +41,7 @@ const SPECIMENS: BotanicalSpecimen[] = [
     src: "/art/details/neem-branch.webp",
     alt: "Fine graphite drawing of a serrated neem leaf branch",
     fit: "contain",
-    anchorClass: "top-[38%] left-[24%] md:top-[38%] md:left-[26%]",
+    anchorClass: "top-[42%] left-[5%] md:top-[38%] md:left-[26%]",
   },
   {
     id: "root",
@@ -52,7 +52,7 @@ const SPECIMENS: BotanicalSpecimen[] = [
     src: "/art/details/aerial-roots.webp",
     alt: "Fine ink drawing of descending banyan aerial roots",
     fit: "contain",
-    anchorClass: "top-[55%] left-[44%] md:top-[55%] md:left-[49%]",
+    anchorClass: "top-[53%] right-[5%] md:right-auto md:top-[55%] md:left-[49%]",
   },
   {
     id: "soil",
@@ -63,7 +63,7 @@ const SPECIMENS: BotanicalSpecimen[] = [
     src: "/illustrated/ch04-earth/print-roots-strata.webp",
     alt: "Geological botanical cross-section showing roots inside layered red soil",
     fit: "cover",
-    anchorClass: "bottom-[14%] right-[8%] md:bottom-[15%] md:right-[33%]",
+    anchorClass: "top-[64%] left-[12%] md:top-auto md:left-auto md:bottom-[15%] md:right-[33%]",
   },
 ];
 
@@ -136,15 +136,14 @@ export default function Chapter05GrowingForest({
 
   return (
     <div
-      className="sticky top-0 w-full h-screen overflow-hidden select-none bg-paper text-ink"
+      className="sticky top-0 w-full h-[100dvh] overflow-hidden select-none bg-paper text-ink"
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       aria-label="Chapter 05: The Growing Forest"
     >
       {/* =====================================================================
           LAYER 01: SINGLE UNIFIED MASTER FOREST ILLUSTRATION
-          Transitions strictly from grayscale graphite -> colored wash on ONE image.
-          Zero duplicate full-screen image copies = zero branch ghosting!
+          Matches SVG 1440x900 slice (`object-center`) cleanly across viewports.
           ===================================================================== */}
       <div
         className="absolute inset-0 pointer-events-none"
@@ -159,7 +158,7 @@ export default function Chapter05GrowingForest({
           alt="Auroville dry-evergreen forest canopy and braided banyan aerial roots rising from eroded red plateau"
           fill
           sizes="100vw"
-          className="object-cover object-[70%_center] md:object-center mix-blend-multiply"
+          className="object-cover object-center mix-blend-multiply"
           style={{
             filter: `grayscale(${(1 - colorWashProgress).toFixed(3)}) contrast(${(1.09 - colorWashProgress * 0.06).toFixed(3)}) saturate(${(0.95 + colorWashProgress * 0.14).toFixed(3)})`,
           }}
@@ -209,10 +208,10 @@ export default function Chapter05GrowingForest({
 
       {/* Soft Top-Left Ivory Reading Veil + Bottom Exit Ivory Veil */}
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[40vh] md:w-[40vw] md:h-[42vh]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[44dvh] md:w-[40vw] md:h-[42vh]"
         style={{
           background:
-            "radial-gradient(ellipse 88% 82% at 14% 18%, rgba(246, 243, 235, 0.94) 18%, rgba(246, 243, 235, 0.72) 52%, transparent 100%)",
+            "radial-gradient(ellipse 92% 85% at 14% 18%, rgba(246, 243, 235, 0.96) 24%, rgba(246, 243, 235, 0.78) 54%, transparent 100%)",
         }}
         aria-hidden="true"
       />
@@ -335,7 +334,8 @@ export default function Chapter05GrowingForest({
             d="M 662 365 C 660 540, 662 740, 662 900"
             fill="none"
             stroke={`url(#rootWaterGrad-${uid})`}
-            strokeWidth={1.85 + exitRootConverge * 1.15}
+            strokeWidth={1.35 + exitRootConverge * 0.65}
+            strokeOpacity={0.78}
             strokeLinecap="round"
             pathLength={1}
             strokeDasharray="1"
@@ -349,7 +349,9 @@ export default function Chapter05GrowingForest({
           Replaces the previous intrusive auto-opening panel!
           ===================================================================== */}
       <div
-        className="absolute inset-0 z-20 pointer-events-none"
+        className={`absolute inset-0 z-20 pointer-events-none ${
+          selectedSpecimen ? "max-md:hidden" : ""
+        }`}
         style={{ opacity: markersOpacity }}
       >
         {SPECIMENS.map((spec) => {
@@ -384,7 +386,7 @@ export default function Chapter05GrowingForest({
       {/* =====================================================================
           EDITORIAL HEADLINE + OPTIONAL IN-SITU DISCOVERY DETAIL CARD (CLICK-ONLY)
           ===================================================================== */}
-      <div className="relative z-30 w-full h-full px-5 sm:px-8 md:px-14 pt-20 md:pt-24 pb-6 md:pb-10 flex flex-col justify-between pointer-events-none">
+      <div className="relative z-30 w-full h-full px-5 sm:px-8 md:px-14 pt-[66px] md:pt-24 pb-6 md:pb-10 [@media(max-height:520px)]:pt-14 flex flex-col justify-between pointer-events-none">
         {/* Top-Left Minimal Chapter Identity & Headline */}
         <div
           className="max-w-[290px] md:max-w-[350px]"

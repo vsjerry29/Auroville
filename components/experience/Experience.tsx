@@ -13,9 +13,11 @@ import ProgressIndicator from "@/components/experience/ProgressIndicator";
 import ExperienceFooter from "@/components/experience/ExperienceFooter";
 import FirstMarkPreloader from "@/components/experience/FirstMarkPreloader";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
+import { useControlledScroll } from "@/lib/scroll/useControlledScroll";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+  ScrollTrigger.config({ ignoreMobileResize: true });
 }
 
 export default function Experience() {
@@ -37,7 +39,13 @@ export default function Experience() {
   const ch05SectionRef = useRef<HTMLElement>(null);
   const ch06SectionRef = useRef<HTMLElement>(null);
   const atlasSectionRef = useRef<HTMLElement>(null);
+
+  const upperPinTriggerRef = useRef<ScrollTrigger | null>(null);
+  const ch04ScrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  const ch05ScrollTriggerRef = useRef<ScrollTrigger | null>(null);
+  const ch06ScrollTriggerRef = useRef<ScrollTrigger | null>(null);
   const atlasPinTriggerRef = useRef<ScrollTrigger | null>(null);
+
   const prefersReducedMotion = useReducedMotion();
 
   // Keep background <main> strictly inert & hidden from assistive tech while Editorial Index is open
@@ -51,22 +59,123 @@ export default function Experience() {
     }
   }, [menuOpen]);
 
+  // Compute authoritative scroll milestones dynamically from live ScrollTrigger spans
+  const getMilestones = useCallback((): number[] => {
+    if (typeof window === "undefined") return [0];
+    const maxScroll = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight
+    );
+    const list: number[] = [0];
+
+    const upper = upperPinTriggerRef.current;
+    if (upper && upper.end > upper.start) {
+      const span = upper.end - upper.start;
+      list.push(
+        upper.start + span * (0.215 / 0.73), // CH02 Sketch reveal settled
+        upper.start + span * (0.425 / 0.73), // CH02 Sunlit real photograph hold
+        upper.start + span * (0.505 / 0.73), // CH03 Story 01: Imagined
+        upper.start + span * (0.595 / 0.73), // CH03 Story 02: Made
+        upper.start + span * (0.695 / 0.73)  // CH03 Story 03: Realized
+      );
+    }
+
+    const ch04 = ch04ScrollTriggerRef.current;
+    if (ch04 && ch04.end > ch04.start) {
+      list.push(ch04.start + (ch04.end - ch04.start) * 0.22); // CH04 Hanging gallery settled
+    }
+
+    const ch05 = ch05ScrollTriggerRef.current;
+    if (ch05 && ch05.end > ch05.start) {
+      const span = ch05.end - ch05.start;
+      list.push(
+        ch05.start + span * 0.45, // CH05 Monochrome canopy emergence
+        ch05.start + span * 0.76  // CH05 Illuminated forest exploration
+      );
+    }
+
+    const ch06 = ch06ScrollTriggerRef.current;
+    if (ch06 && ch06.end > ch06.start) {
+      list.push(ch06.start + (ch06.end - ch06.start) * 0.56); // CH06 Water basin & frog active
+    }
+
+    const atlas = atlasPinTriggerRef.current;
+    if (atlas && atlas.end > atlas.start) {
+      const span = atlas.end - atlas.start;
+      list.push(
+        atlas.start + span * 0.08, // Atlas 01 Matrimandir
+        atlas.start + span * 0.37, // Atlas 02 Bharat Nivas
+        atlas.start + span * 0.67, // Atlas 03 Solar Kitchen
+        atlas.start + span * 0.93  // Atlas 04 Visitors Centre
+      );
+    }
+
+    list.push(maxScroll); // Illustrated Epilogue Footer
+    return list;
+  }, []);
+
+  const { navigateToY } = useControlledScroll({
+    enabled: true,
+    menuOpen,
+    prefersReducedMotion,
+    getMilestones,
+  });
+
   const handleNavigate = useCallback(
-    (targetProgress: number) => {
+    (targetProgress: number, chapterId?: string) => {
+      let targetScroll: number | null = null;
+      const upper = upperPinTriggerRef.current;
+      const ch04 = ch04ScrollTriggerRef.current;
+      const ch05 = ch05ScrollTriggerRef.current;
+      const ch06 = ch06ScrollTriggerRef.current;
+      const atlas = atlasPinTriggerRef.current;
+
+      if (chapterId === "ch01" || targetProgress <= 0) {
+        targetScroll = 0;
+      } else if (chapterId === "ch02" && upper) {
+        targetScroll = upper.start + (upper.end - upper.start) * (0.215 / 0.73);
+      } else if (chapterId === "ch03" && upper) {
+        targetScroll = upper.start + (upper.end - upper.start) * (0.505 / 0.73);
+      } else if (chapterId === "ch04" && ch04) {
+        targetScroll = ch04.start + (ch04.end - ch04.start) * 0.22;
+      } else if (chapterId === "ch05" && ch05) {
+        targetScroll = ch05.start + (ch05.end - ch05.start) * 0.56;
+      } else if (chapterId === "ch06" && ch06) {
+        targetScroll = ch06.start + (ch06.end - ch06.start) * 0.54;
+      } else if (chapterId === "ch07" && atlas) {
+        targetScroll = atlas.start + (atlas.end - atlas.start) * 0.08;
+      }
+
       const totalScrollable =
         document.documentElement.scrollHeight - window.innerHeight;
       if (totalScrollable <= 0) return;
-      const targetScroll = Math.max(
-        0,
-        Math.min(totalScrollable, targetProgress * totalScrollable)
-      );
-      window.scrollTo({
-        top: targetScroll,
-        behavior: prefersReducedMotion ? "auto" : "smooth",
+
+      const resolved =
+        targetScroll !== null
+          ? targetScroll
+          : targetProgress * totalScrollable;
+      navigateToY(Math.max(0, Math.min(totalScrollable, resolved)), {
+        immediate: prefersReducedMotion,
       });
     },
-    [prefersReducedMotion]
+    [navigateToY, prefersReducedMotion]
   );
+
+  // Authoritative live chapter identification across both mobile & desktop pacing
+  const activeChapterId =
+    ch07EnterProgress > 0.35
+      ? "ch07"
+      : ch06EnterProgress > 0.35
+      ? "ch06"
+      : ch05EnterProgress > 0.35
+      ? "ch05"
+      : ch04EnterProgress > 0.35
+      ? "ch04"
+      : stageProgress >= 0.445
+      ? "ch03"
+      : stageProgress >= 0.195
+      ? "ch02"
+      : "ch01";
 
   const handleNavigateAtlasStop = useCallback(
     (stopProgress: number) => {
@@ -74,12 +183,12 @@ export default function Experience() {
       if (!st) return;
       const clamped = Math.min(1, Math.max(0, stopProgress));
       const targetY = st.start + clamped * (st.end - st.start);
-      window.scrollTo({
-        top: targetY,
-        behavior: prefersReducedMotion ? "auto" : "smooth",
+      navigateToY(targetY, {
+        immediate: prefersReducedMotion,
+        duration: 0.62,
       });
     },
-    [prefersReducedMotion]
+    [navigateToY, prefersReducedMotion]
   );
 
   useEffect(() => {
@@ -96,121 +205,131 @@ export default function Experience() {
       window.scrollTo(0, 0);
     }
 
-    const scrubValue = prefersReducedMotion ? 0 : 0.45;
+    const scrubValue = prefersReducedMotion ? 0 : 0.32;
 
     const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: upperPinRef.current,
-        pin: true,
-        pinSpacing: true,
-        start: "top top",
-        end: () => `+=${Math.round(window.innerHeight * 5.0)}`,
-        scrub: scrubValue,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setStageProgress(self.progress * 0.73);
-        },
-      });
+      const mm = gsap.matchMedia();
 
-      ScrollTrigger.create({
-        trigger: ch04SectionRef.current,
-        start: "top bottom",
-        end: "top top",
-        scrub: prefersReducedMotion ? 0 : 0.25,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh04EnterProgress(self.progress);
-        },
-      });
+      const buildResponsiveScrollTriggers = (isMobile: boolean) => {
+        const upperEndMultiplier = isMobile ? 3.8 : 5.0;
+        const atlasEndMultiplier = isMobile ? 2.9 : 3.8;
 
-      ScrollTrigger.create({
-        trigger: ch04SectionRef.current,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: scrubValue,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh04ScrollProgress(self.progress);
-        },
-      });
+        upperPinTriggerRef.current = ScrollTrigger.create({
+          trigger: upperPinRef.current,
+          pin: true,
+          pinSpacing: true,
+          start: "top top",
+          end: () => `+=${Math.round(window.innerHeight * upperEndMultiplier)}`,
+          scrub: scrubValue,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setStageProgress(self.progress * 0.73);
+          },
+        });
 
-      ScrollTrigger.create({
-        trigger: ch05SectionRef.current,
-        start: "top bottom",
-        end: "top top",
-        scrub: prefersReducedMotion ? 0 : 0.25,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh05EnterProgress(self.progress);
-        },
-      });
+        ScrollTrigger.create({
+          trigger: ch04SectionRef.current,
+          start: "top bottom",
+          end: "top top",
+          scrub: prefersReducedMotion ? 0 : 0.2,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh04EnterProgress(self.progress);
+          },
+        });
 
-      ScrollTrigger.create({
-        trigger: ch05SectionRef.current,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: scrubValue,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh05ScrollProgress(self.progress);
-        },
-      });
+        ch04ScrollTriggerRef.current = ScrollTrigger.create({
+          trigger: ch04SectionRef.current,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: scrubValue,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh04ScrollProgress(self.progress);
+          },
+        });
 
-      ScrollTrigger.create({
-        trigger: ch06SectionRef.current,
-        start: "top bottom",
-        end: "top top",
-        scrub: prefersReducedMotion ? 0 : 0.25,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh06EnterProgress(self.progress);
-        },
-      });
+        ScrollTrigger.create({
+          trigger: ch05SectionRef.current,
+          start: "top bottom",
+          end: "top top",
+          scrub: prefersReducedMotion ? 0 : 0.2,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh05EnterProgress(self.progress);
+          },
+        });
 
-      ScrollTrigger.create({
-        trigger: ch06SectionRef.current,
-        start: "top top",
-        end: "bottom bottom",
-        scrub: scrubValue,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh06ScrollProgress(self.progress);
-        },
-      });
+        ch05ScrollTriggerRef.current = ScrollTrigger.create({
+          trigger: ch05SectionRef.current,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: scrubValue,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh05ScrollProgress(self.progress);
+          },
+        });
 
-      ScrollTrigger.create({
-        trigger: atlasSectionRef.current,
-        start: "top bottom",
-        end: "top top",
-        scrub: prefersReducedMotion ? 0 : 0.25,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh07EnterProgress(self.progress);
-        },
-      });
+        ScrollTrigger.create({
+          trigger: ch06SectionRef.current,
+          start: "top bottom",
+          end: "top top",
+          scrub: prefersReducedMotion ? 0 : 0.2,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh06EnterProgress(self.progress);
+          },
+        });
 
-      atlasPinTriggerRef.current = ScrollTrigger.create({
-        trigger: atlasSectionRef.current,
-        pin: true,
-        pinSpacing: true,
-        start: "top top",
-        end: () => `+=${Math.round(window.innerHeight * 3.8)}`,
-        scrub: scrubValue,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setCh07JourneyProgress(self.progress);
-        },
-      });
+        ch06ScrollTriggerRef.current = ScrollTrigger.create({
+          trigger: ch06SectionRef.current,
+          start: "top top",
+          end: "bottom bottom",
+          scrub: scrubValue,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh06ScrollProgress(self.progress);
+          },
+        });
 
-      ScrollTrigger.create({
-        start: 0,
-        end: "max",
-        scrub: 0.1,
-        invalidateOnRefresh: true,
-        onUpdate: (self) => {
-          setGlobalProgress(self.progress);
-        },
-      });
+        ScrollTrigger.create({
+          trigger: atlasSectionRef.current,
+          start: "top bottom",
+          end: "top top",
+          scrub: prefersReducedMotion ? 0 : 0.2,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh07EnterProgress(self.progress);
+          },
+        });
+
+        atlasPinTriggerRef.current = ScrollTrigger.create({
+          trigger: atlasSectionRef.current,
+          pin: true,
+          pinSpacing: true,
+          start: "top top",
+          end: () => `+=${Math.round(window.innerHeight * atlasEndMultiplier)}`,
+          scrub: scrubValue,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setCh07JourneyProgress(self.progress);
+          },
+        });
+
+        ScrollTrigger.create({
+          start: 0,
+          end: "max",
+          scrub: 0.08,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            setGlobalProgress(self.progress);
+          },
+        });
+      };
+
+      mm.add("(max-width: 767px)", () => buildResponsiveScrollTriggers(true));
+      mm.add("(min-width: 768px)", () => buildResponsiveScrollTriggers(false));
 
       ScrollTrigger.refresh();
     });
@@ -231,6 +350,7 @@ export default function Experience() {
       <FirstMarkPreloader />
       <ChapterNavigation
         currentProgress={globalProgress}
+        activeChapterId={activeChapterId}
         onNavigate={handleNavigate}
         onMenuOpenChange={setMenuOpen}
       />
@@ -242,14 +362,14 @@ export default function Experience() {
         className="relative w-full bg-paper text-ink"
         aria-label="Auroville: The Art of Interaction"
       >
-        <div ref={upperPinRef} className="relative w-full h-screen overflow-hidden">
+        <div ref={upperPinRef} className="relative w-full h-[100dvh] overflow-hidden">
           <ExperienceStage progress={stageProgress} ch04EnterProgress={ch04EnterProgress} />
         </div>
 
         <section
           ref={ch04SectionRef}
           id="chapter-04"
-          className="relative w-full h-[220vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
+          className="relative w-full h-[185dvh] md:h-[220vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
           aria-label="Chapter 04: The Earth Remembers"
         >
           <Chapter04RedEarth
@@ -262,7 +382,7 @@ export default function Experience() {
         <section
           ref={ch05SectionRef}
           id="chapter-05"
-          className="relative w-full h-[320vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
+          className="relative w-full h-[255dvh] md:h-[320vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
           aria-label="Chapter 05: The Growing Forest"
         >
           <Chapter05GrowingForest
@@ -274,7 +394,7 @@ export default function Experience() {
         <section
           ref={ch06SectionRef}
           id="chapter-06"
-          className="relative w-full h-[300vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
+          className="relative w-full h-[240dvh] md:h-[300vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
           aria-label="Chapter 06: The Water Story"
         >
           <Chapter06WaterStory
@@ -286,7 +406,7 @@ export default function Experience() {
         <section
           ref={atlasSectionRef}
           id="chapter-07"
-          className="relative w-full h-screen overflow-hidden bg-paper text-ink selection:bg-terracotta selection:text-paper-light border-t border-border/35"
+          className="relative w-full h-[100dvh] overflow-hidden bg-paper text-ink selection:bg-terracotta selection:text-paper-light border-t border-border/35"
           aria-label="Chapter 07: The Interactive Atlas"
         >
           <Chapter10Atlas

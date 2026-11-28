@@ -18,6 +18,8 @@ export interface AtlasLocation {
   stopProgress: number;
   /** Safe camera transform targeting this destination on desktop (tx%, ty%, scale) */
   camera: { tx: number; ty: number; scale: number };
+  /** Landmark-focused camera framing for portrait mobile viewports (< 768px) */
+  mobileCamera: { tx: number; ty: number; scale: number };
 }
 
 /**
@@ -46,6 +48,7 @@ export const ATLAS_LOCATIONS: AtlasLocation[] = [
     routePath: "M 538 398 L 696 398 M 696 292 A 106 106 0 1 1 695.9 292 Z",
     stopProgress: 0.08,
     camera: { tx: 0, ty: 0, scale: 1.0 },
+    mobileCamera: { tx: -3, ty: 5, scale: 1.08 },
   },
   {
     id: "bharat-nivas",
@@ -64,6 +67,7 @@ export const ATLAS_LOCATIONS: AtlasLocation[] = [
     routePath: "M 668 398 L 462 396 L 348 397",
     stopProgress: 0.37,
     camera: { tx: 12, ty: 2.5, scale: 1.13 },
+    mobileCamera: { tx: 26, ty: 12, scale: 1.36 },
   },
   {
     id: "solar-kitchen",
@@ -82,6 +86,7 @@ export const ATLAS_LOCATIONS: AtlasLocation[] = [
     routePath: "M 462 396 A 228 221 0 0 0 695 617 L 698 725",
     stopProgress: 0.67,
     camera: { tx: -3, ty: -13, scale: 1.14 },
+    mobileCamera: { tx: -15, ty: -36, scale: 1.36 },
   },
   {
     id: "visitors-centre",
@@ -101,6 +106,7 @@ export const ATLAS_LOCATIONS: AtlasLocation[] = [
       "M 76 674 Q 124 584 224 544 L 294 522 L 284 594 M 294 522 Q 380 478 462 436 Q 508 408 566 398",
     stopProgress: 0.93,
     camera: { tx: 13, ty: -7.5, scale: 1.14 },
+    mobileCamera: { tx: 24, ty: -22, scale: 1.38 },
   },
 ];
 

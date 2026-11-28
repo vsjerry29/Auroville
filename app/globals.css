@@ -63,3 +63,32 @@ img {
   user-select: none;
   -webkit-user-drag: none;
 }
+
+/* Unified CH01 -> CH02 coordinate canvas ensuring 0.0px handoff seam on both portrait & desktop */
+.matrimandir-stage-canvas {
+  --stage-scale: calc(0.45 + var(--expand, 0) * 0.55);
+  --stage-shift-x: calc((1 - var(--expand, 0)) * 0.8%);
+  --stage-y-offset: calc((1 - var(--expand, 0)) * 3.5%);
+  width: calc(clamp(320px, 56dvh, 470px) * 1.7916667);
+  height: clamp(320px, 56dvh, 470px);
+  top: calc(50% + var(--stage-y-offset));
+  left: 50%;
+  transform-origin: 48.73% 47.66%;
+  transform: translate(-50%, -50%) translateX(var(--stage-shift-x)) scale(var(--stage-scale));
+}
+
+@media (min-width: 768px), (max-height: 520px) and (min-width: 560px) {
+  .matrimandir-stage-canvas {
+    --stage-scale: calc(0.42 + var(--expand, 0) * 0.58);
+    --stage-shift-x: calc((1 - var(--expand, 0)) * 0.9%);
+    width: max(100vw, calc(100dvh * 1376 / 768));
+    height: max(100dvh, calc(100vw * 768 / 1376));
+    top: 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+}

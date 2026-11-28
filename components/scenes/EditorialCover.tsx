@@ -148,9 +148,10 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
 
       {/* =====================================================================
           MAIN MONUMENTAL DISPLAY TYPOGRAPHY (AURO / VILLE)
-          Massive Archivo Black typography layered over the central drawing
+          Deliberate upper-zone portrait placement on mobile/tablet-portrait;
+          landscape desktop retains overlapping centered composition.
           ===================================================================== */}
-      <div className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 my-auto flex flex-col justify-center pt-14">
+      <div className="relative z-20 w-full max-w-7xl [@media(max-height:520px)]:max-w-lg mx-auto px-5 sm:px-8 md:px-12 pt-[clamp(62px,8.5dvh,88px)] md:pt-14 md:my-auto flex flex-col justify-start md:justify-center [@media(max-height:520px)]:pt-14 [@media(max-height:520px)]:my-0">
         {/* Top Headline: Pure bold Archivo Black AURO */}
         <div
           className="w-full flex items-baseline justify-start"
@@ -159,20 +160,20 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
             opacity: textOpacity,
           }}
         >
-          <h1 className="font-display text-[26vw] md:text-[18vw] text-ink leading-[0.80] tracking-tighter2 select-none">
+          <h1 className="font-display text-[clamp(3.05rem,17.8vw,5.1rem)] md:text-[18vw] [@media(max-height:520px)]:text-[16vh] text-ink leading-[0.82] md:leading-[0.80] tracking-[-0.045em] md:tracking-tighter2 select-none">
             AURO
           </h1>
         </div>
 
         {/* Bottom Headline: VILLE */}
         <div
-          className="w-full flex items-baseline justify-end -mt-4 md:-mt-8"
+          className="w-full flex items-baseline justify-end -mt-1 sm:-mt-2 md:-mt-8"
           style={{
             transform: `translateX(${textTranslateVw}vw)`,
             opacity: textOpacity,
           }}
         >
-          <h1 className="font-display text-[26vw] md:text-[18vw] text-ink leading-[0.80] tracking-tighter2 select-none text-right">
+          <h1 className="font-display text-[clamp(3.05rem,17.8vw,5.1rem)] md:text-[18vw] [@media(max-height:520px)]:text-[16vh] text-ink leading-[0.82] md:leading-[0.80] tracking-[-0.045em] md:tracking-tighter2 select-none text-right">
             VILLE
           </h1>
         </div>
@@ -180,10 +181,10 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
 
       {/* =====================================================================
           ILLUSTRATION LAYER 01 — HAND-DRAWN CENTENARY BANYAN TREE (Right)
-          Features organic leaf sway (2–4px displacement) on pointer proximity
+          Recomposes gracefully to lower-right portrait frame on mobile
           ===================================================================== */}
       <div
-        className="hidden md:block absolute right-[-4vw] md:right-[-2vw] bottom-[2vh] md:bottom-[4vh] w-[55vw] md:w-[42vw] max-w-[700px] pointer-events-none"
+        className="absolute right-[-7vw] sm:right-[-4vw] md:right-[-2vw] bottom-[15.5dvh] sm:bottom-[14dvh] md:bottom-[4vh] w-[54vw] sm:w-[44vw] md:w-[42vw] max-w-[235px] sm:max-w-[300px] md:max-w-[700px] [@media(max-height:520px)]:w-[28vw] [@media(max-height:520px)]:bottom-[6vh] pointer-events-none"
         style={{
           zIndex: 15,
           opacity: Math.max(0, 1 - typeShift * 1.25),
@@ -202,10 +203,10 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
 
       {/* =====================================================================
           ILLUSTRATION LAYER 02 — HAND-DRAWN ARTISAN / POTTER (Left)
-          With subtle throwing swirl detail on pointer proximity
+          Grounded cleanly opposite Banyan tree on mobile diagonal
           ===================================================================== */}
       <div
-        className="hidden md:block absolute left-[5vw] md:left-[7vw] bottom-[24vh] md:bottom-[26vh] w-[28vw] md:w-[14vw] max-w-[210px]"
+        className="absolute left-[4vw] md:left-[7vw] bottom-[16.5dvh] sm:bottom-[15dvh] md:bottom-[26vh] w-[25vw] sm:w-[21vw] md:w-[14vw] max-w-[102px] sm:max-w-[140px] md:max-w-[210px] [@media(max-height:520px)]:w-[11vw] [@media(max-height:520px)]:bottom-[16vh]"
         style={{
           zIndex: 15,
           opacity: Math.max(0, 1 - typeShift * 1.25),
@@ -223,7 +224,7 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
           />
           {/* Subtle concentric throwing texture appearing on clay vessel on proximity */}
           <div
-            className="absolute left-[38%] top-[45%] w-10 h-10 pointer-events-none transition-opacity duration-500 rounded-full"
+            className="hidden md:block absolute left-[38%] top-[45%] w-10 h-10 pointer-events-none transition-opacity duration-500 rounded-full"
             style={{
               opacity: isNearPotter ? 0.45 : 0,
             }}
@@ -238,19 +239,17 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
 
       {/* =====================================================================
           UNIFIED PERSISTENT MATRIMANDIR CANVAS (Exact 1376:768 Aspect Frame)
-          Maintains 1:1 geometric identity across all viewports (no rectangular crop
-          edges during scaling). At S = 1.00 this matches Chapter 02's
-          object-cover object-center canvas down to 0.0px.
+          Uses `.matrimandir-stage-canvas` CSS vars for guaranteed 0.0px handoff
+          into Chapter 02 across mobile, tablet, landscape, and desktop.
           ===================================================================== */}
       <div
-        className="absolute top-1/2 left-1/2 pointer-events-none"
-        style={{
-          zIndex: 12,
-          width: "max(100vw, calc(100vh * 1376 / 768))",
-          height: "max(100vh, calc(100vw * 768 / 1376))",
-          transformOrigin: "48.73% 47.66%",
-          transform: `translate(-50%, -50%) translateX(${centerShiftX}%) scale(${artworkScale})`,
-        }}
+        className="matrimandir-stage-canvas absolute pointer-events-none"
+        style={
+          {
+            zIndex: 12,
+            "--expand": expandEase,
+          } as React.CSSProperties
+        }
       >
         {/* Base Layer: Clean Luminous Architectural Elevation Study (isolated silhouette on transparent alpha) */}
         <div className="absolute inset-0 w-full h-full">
@@ -335,17 +334,17 @@ export default function EditorialCover({ progress, active }: EditorialCoverProps
           BOTTOM EDITORIAL STATEMENT (Clean, restrained, zero telemetry)
           ===================================================================== */}
       <div
-        className="relative z-20 w-full max-w-7xl mx-auto px-6 md:px-12 pb-10 md:pb-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-4"
+        className="relative z-20 w-full max-w-7xl mx-auto px-5 sm:px-8 md:px-12 pb-[max(18px,3.2dvh)] md:pb-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-4 [@media(max-height:520px)]:pb-3.5"
         style={{
           opacity: Math.max(0, 1 - typeShift * 1.4),
           transform: `translateY(${typeShift * 28}px)`,
         }}
       >
-        <div className="max-w-md">
-          <h2 className="font-serif italic text-2xl md:text-3xl text-ink font-light leading-snug">
+        <div className="max-w-[35ch] md:max-w-md bg-paper/75 md:bg-transparent backdrop-blur-[1px] md:backdrop-blur-none">
+          <h2 className="font-serif italic text-[clamp(1.35rem,5vw,1.875rem)] md:text-3xl [@media(max-height:520px)]:text-xl text-ink font-light leading-snug">
             A place still becoming.
           </h2>
-          <p className="font-sans text-xs md:text-sm text-ink-muted mt-1 leading-relaxed font-light">
+          <p className="font-sans text-xs md:text-sm text-ink-muted mt-1 leading-relaxed font-light [@media(max-height:460px)]:hidden">
             Founded in 1968 on an eroded red plateau in southern India. Dedicated to human
             unity, architecture, and ecological regeneration.
           </p>

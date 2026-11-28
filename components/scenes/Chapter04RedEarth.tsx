@@ -91,7 +91,7 @@ export default function Chapter04RedEarth({
   const postBridge = clamp01(progress);
 
   return (
-    <div className="sticky top-0 w-full h-screen overflow-hidden select-none bg-paper text-ink border-t border-border/35">
+    <div className="sticky top-0 w-full h-[100dvh] overflow-hidden select-none bg-paper text-ink border-t border-border/35">
       {/* Subtle soil contour field */}
       <LivingContourField
         variant="earth-strata"
@@ -121,9 +121,9 @@ export default function Chapter04RedEarth({
         />
       </div>
 
-      {/* Minimal Top Chapter Cue (valid pt-20 below fixed navbar) */}
+      {/* Minimal Top Chapter Cue (clear beneath fixed navbar) */}
       <div
-        className="relative z-20 max-w-7xl mx-auto px-6 md:px-14 pt-20 md:pt-24 flex items-center justify-between pointer-events-none"
+        className="relative z-20 max-w-7xl mx-auto px-5 sm:px-8 md:px-14 pt-[62px] md:pt-24 flex items-center justify-between pointer-events-none [@media(max-height:520px)]:pt-14"
         style={{ opacity: smooth(0.1, 0.55, enterProgress) }}
       >
         <div className="font-mono text-[10px] uppercase tracking-widest text-terracotta font-semibold">
@@ -213,11 +213,12 @@ export default function Chapter04RedEarth({
       </div>
 
       {/* =====================================================================
-          MOBILE RESPONSIVE CURVED HANGING COMPOSITION (390px+)
+          MOBILE RESPONSIVE CURVED HANGING COMPOSITION (360px–767px)
+          Recomputes proportional plate sizes & staggered arrival choreography
           ===================================================================== */}
-      <div className="md:hidden relative w-full h-[calc(100vh-130px)] px-4 pt-4 flex flex-col justify-between z-20">
+      <div className="md:hidden relative w-full h-[calc(100dvh-82px)] px-4 pt-2 flex flex-col justify-between z-20">
         {/* Upper Tier Wire + Varied Left & Right Prints */}
-        <div className="relative w-full h-[46%]">
+        <div className="relative w-full h-[47%]">
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none z-10"
             viewBox="0 0 1000 1000"
@@ -225,78 +226,94 @@ export default function Chapter04RedEarth({
             fill="none"
           >
             <path
-              d="M -20 120 Q 500 215, 1020 135"
+              d="M -20 115 Q 500 210, 1020 130"
               stroke="#4A453E"
               strokeWidth="2.2"
               style={{ strokeDasharray: 1200, strokeDashoffset: (1 - cordDraw) * 1200 }}
             />
           </svg>
 
-          {/* Mobile Print 1: Earth (smaller lighter plate) */}
-          <div
-            className="absolute z-20"
-            style={{
-              left: "25%",
-              top: `${getCordYPercent(25, 120, 215, 135)}%`,
-              width: "116px",
-              transformOrigin: "50% 0%",
-              transform: "translate(-50%, 0) rotate(-3deg)",
-            }}
-          >
-            <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
-              <WoodenPeg />
-            </div>
-            <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
-              <div className="relative w-full aspect-[570/861]">
-                <Image
-                  src="/illustrated/ch04-earth/print-red-earth.webp"
-                  alt="Terracotta Horizons"
-                  fill
-                  sizes="120px"
-                  className="object-cover"
-                  priority
-                />
+          {/* Mobile Print 1: Earth */}
+          {(() => {
+            const s1 = smooth(0.28, 0.86, enterProgress);
+            const y1 = (1 - s1) * 32;
+            const ang1 = -3 + (1 - s1) * -1.4;
+            return (
+              <div
+                className="absolute z-20"
+                style={{
+                  left: "24%",
+                  top: `${getCordYPercent(24, 115, 210, 130)}%`,
+                  width: "clamp(96px, 26vw, 132px)",
+                  transformOrigin: "50% 0%",
+                  transform: `translate(-50%, ${y1}px) rotate(${ang1}deg)`,
+                  opacity: smooth(0.12, 0.62, enterProgress),
+                }}
+              >
+                <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
+                  <WoodenPeg />
+                </div>
+                <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
+                  <div className="relative w-full aspect-[570/861]">
+                    <Image
+                      src="/illustrated/ch04-earth/print-red-earth.webp"
+                      alt="Terracotta Horizons"
+                      fill
+                      sizes="135px"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
+                    Terracotta Horizons
+                  </div>
+                </div>
               </div>
-              <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
-                Terracotta Horizons
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
-          {/* Mobile Print 2: Seed Anatomy (featured larger center-right plate) */}
-          <div
-            className="absolute z-20"
-            style={{
-              left: "72%",
-              top: `${getCordYPercent(72, 120, 215, 135)}%`,
-              width: "140px",
-              transformOrigin: "50% 0%",
-              transform: "translate(-50%, 0) rotate(2.4deg)",
-            }}
-          >
-            <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
-              <WoodenPeg />
-            </div>
-            <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
-              <div className="relative w-full aspect-[570/861]">
-                <Image
-                  src="/illustrated/ch04-earth/print-seed-hand.webp"
-                  alt="Seed Anatomy & Sowing"
-                  fill
-                  sizes="150px"
-                  className="object-cover"
-                  priority
-                />
+          {/* Mobile Print 2: Seed Anatomy (featured larger plate) */}
+          {(() => {
+            const s2 = smooth(0.4, 0.94, enterProgress);
+            const y2 = (1 - s2) * 44;
+            const ang2 = 2.4 + (1 - s2) * 1.4;
+            return (
+              <div
+                className="absolute z-20"
+                style={{
+                  left: "73%",
+                  top: `${getCordYPercent(73, 115, 210, 130)}%`,
+                  width: "clamp(116px, 31vw, 154px)",
+                  transformOrigin: "50% 0%",
+                  transform: `translate(-50%, ${y2}px) rotate(${ang2}deg)`,
+                  opacity: smooth(0.24, 0.72, enterProgress),
+                }}
+              >
+                <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
+                  <WoodenPeg />
+                </div>
+                <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
+                  <div className="relative w-full aspect-[570/861]">
+                    <Image
+                      src="/illustrated/ch04-earth/print-seed-hand.webp"
+                      alt="Seed Anatomy & Sowing"
+                      fill
+                      sizes="155px"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
+                    Seed Anatomy &amp; Sowing
+                  </div>
+                </div>
               </div>
-              <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
-                Seed Anatomy &amp; Sowing
-              </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
 
-        {/* Lower Tier Wire + Taproot Architecture + Compact Caption */}
-        <div className="relative w-full h-[46%]">
+        {/* Lower Tier Wire + Taproot Architecture + Balanced Right Statement */}
+        <div className="relative w-full h-[49%]">
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none z-10"
             viewBox="0 0 1000 1000"
@@ -304,52 +321,63 @@ export default function Chapter04RedEarth({
             fill="none"
           >
             <path
-              d="M -20 90 Q 500 170, 1020 110"
+              d="M -20 90 Q 500 168, 1020 108"
               stroke="#4A453E"
               strokeWidth="2.2"
               style={{ strokeDasharray: 1200, strokeDashoffset: (1 - cordDraw) * 1200 }}
             />
           </svg>
 
-          <div
-            className="absolute z-20"
-            style={{
-              left: "28%",
-              top: `${getCordYPercent(28, 90, 170, 110)}%`,
-              width: "130px",
-              transformOrigin: "50% 0%",
-              transform: "translate(-50%, 0) rotate(-2deg)",
-            }}
-          >
-            <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
-              <WoodenPeg />
-            </div>
-            <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
-              <div className="relative w-full aspect-[570/861]">
-                <Image
-                  src="/illustrated/ch04-earth/print-roots-strata.webp"
-                  alt="Taproot Architecture"
-                  fill
-                  sizes="135px"
-                  className="object-cover"
-                  priority
-                />
+          {(() => {
+            const s3 = smooth(0.34, 0.9, enterProgress);
+            const y3 = (1 - s3) * 28;
+            const ang3 = -2 + (1 - s3) * -1.2;
+            return (
+              <div
+                className="absolute z-20"
+                style={{
+                  left: "26%",
+                  top: `${getCordYPercent(26, 90, 168, 108)}%`,
+                  width: "clamp(104px, 28vw, 140px)",
+                  transformOrigin: "50% 0%",
+                  transform: `translate(-50%, ${y3}px) rotate(${ang3}deg)`,
+                  opacity: smooth(0.18, 0.68, enterProgress),
+                }}
+              >
+                <div className="absolute -top-[13px] left-1/2 -translate-x-1/2 z-30">
+                  <WoodenPeg />
+                </div>
+                <div className="bg-paper-light/95 border border-border/55 p-1.5 archival-shadow-subtle">
+                  <div className="relative w-full aspect-[570/861]">
+                    <Image
+                      src="/illustrated/ch04-earth/print-roots-strata.webp"
+                      alt="Taproot Architecture"
+                      fill
+                      sizes="140px"
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
+                  <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
+                    Taproot Architecture
+                  </div>
+                </div>
               </div>
-              <div className="pt-1 font-serif italic text-[11px] text-ink truncate">
-                Taproot Architecture
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
-          <div className="absolute right-2 top-[24%] w-[44%]">
-            <p className="font-serif italic text-base text-ink font-light leading-snug mb-1.5">
+          <div
+            className="absolute left-[50%] right-3 top-[22%]"
+            style={{ opacity: footerFade }}
+          >
+            <p className="font-serif italic text-lg sm:text-xl text-ink font-light leading-snug mb-1.5">
               Earth, seed, and taproot.
             </p>
-            <p className="font-sans text-[11px] text-ink-muted leading-snug font-light">
+            <p className="font-sans text-[11.5px] text-ink-muted leading-snug font-light">
               Three quiet steps turned laterite dust back into living forest.
             </p>
             {onNavigateStart && (
-              <div className="mt-2">
+              <div className="mt-2.5">
                 <EditorialAction
                   onClick={onNavigateStart}
                   arrow="back"

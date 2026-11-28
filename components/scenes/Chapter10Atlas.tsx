@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import Image from "next/image";
 import {
   ATLAS_LOCATIONS,
@@ -37,24 +37,29 @@ export default function Chapter10Atlas({
 }: Chapter10AtlasProps) {
   const [hoveredId, setHoveredId] = useState<AtlasLocation["id"] | null>(null);
   const [pointerSvg, setPointerSvg] = useState<{ x: number; y: number } | null>(null);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobileViewport(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const t = clamp01(journeyProgress);
 
   // ===========================================================================
   // 1. AUTHORITATIVE SCROLL-DERIVED CAMERA & TRANSITION TIMELINE
-  //    0.00 -> 0.16 : 01 Matrimandir (complete overview at tx=0, ty=0, scale=1.0)
-  //    0.16 -> 0.30 : Curved glide 01 -> 02 Bharat Nivas
-  //    0.30 -> 0.44 : 02 Bharat Nivas hold
-  //    0.44 -> 0.60 : Deliberate curved Bezier arc 02 -> Peace Area -> Crown South -> 03 Solar Kitchen
-  //    0.60 -> 0.74 : 03 Solar Kitchen hold
-  //    0.74 -> 0.87 : Curved arc via wooded southwest toward 04 Visitors Centre
-  //    0.87 -> 1.00 : 04 Visitors Centre final hold before ScrollTrigger releases pin
+  //    Desktop: wide contextual framing; Mobile: closer landmark-centered zoom
   // ===========================================================================
   const camera = useMemo(() => {
-    const c0 = ATLAS_LOCATIONS[0].camera;
-    const c1 = ATLAS_LOCATIONS[1].camera;
-    const c2 = ATLAS_LOCATIONS[2].camera;
-    const c3 = ATLAS_LOCATIONS[3].camera;
+    const pick = (loc: AtlasLocation) =>
+      isMobileViewport ? loc.mobileCamera : loc.camera;
+    const c0 = pick(ATLAS_LOCATIONS[0]);
+    const c1 = pick(ATLAS_LOCATIONS[1]);
+    const c2 = pick(ATLAS_LOCATIONS[2]);
+    const c3 = pick(ATLAS_LOCATIONS[3]);
 
     if (t <= 0.16) {
       return c0;
@@ -68,26 +73,24 @@ export default function Chapter10Atlas({
     } else if (t <= 0.44) {
       return c1;
     } else if (t <= 0.60) {
-      // Curved Bezier camera path looping past Peace Area & southern Crown corner into Solar Kitchen
       const u = smooth(0.44, 0.60, t);
       return {
-        tx: qBezier(c1.tx, 6.5, c2.tx, u),
-        ty: qBezier(c1.ty, -6.5, c2.ty, u),
-        scale: qBezier(c1.scale, 1.07, c2.scale, u),
+        tx: qBezier(c1.tx, isMobileViewport ? 4 : 6.5, c2.tx, u),
+        ty: qBezier(c1.ty, isMobileViewport ? -12 : -6.5, c2.ty, u),
+        scale: qBezier(c1.scale, isMobileViewport ? 1.24 : 1.07, c2.scale, u),
       };
     } else if (t <= 0.74) {
       return c2;
     } else if (t <= 0.87) {
-      // Curved approach gliding northwest across the woodland ravine toward Visitors Centre
       const u = smooth(0.74, 0.87, t);
       return {
-        tx: qBezier(c2.tx, 5.0, c3.tx, u),
-        ty: qBezier(c2.ty, -16.0, c3.ty, u),
-        scale: qBezier(c2.scale, 1.10, c3.scale, u),
+        tx: qBezier(c2.tx, isMobileViewport ? 5 : 5.0, c3.tx, u),
+        ty: qBezier(c2.ty, isMobileViewport ? -26 : -16.0, c3.ty, u),
+        scale: qBezier(c2.scale, isMobileViewport ? 1.28 : 1.10, c3.scale, u),
       };
     }
     return c3;
-  }, [t]);
+  }, [t, isMobileViewport]);
 
   // ===========================================================================
   // 2. SYNCHRONIZED INFORMATION PANEL MASK & COORDINATED TEXT SWAP
@@ -172,7 +175,7 @@ export default function Chapter10Atlas({
 
   return (
     <div
-      className="relative w-full h-full bg-paper text-ink px-4 sm:px-6 md:px-10 lg:px-14 pt-20 md:pt-24 pb-4 md:pb-8 flex flex-col md:flex-row items-stretch justify-between gap-2 md:gap-4 select-none"
+      className="relative w-full h-full bg-paper text-ink px-4 sm:px-6 md:px-10 lg:px-14 pt-[64px] md:pt-24 pb-4 md:pb-8 [@media(max-height:520px)]:pt-14 [@media(max-height:520px)]:pb-2 flex flex-col md:flex-row items-stretch justify-between gap-2 md:gap-4 select-none"
       aria-label="Chapter 07: The Interactive Atlas — Explore Auroville"
     >
       {/* =====================================================================
@@ -199,18 +202,18 @@ export default function Chapter10Atlas({
         />
       </svg>
       {/* =====================================================================
-          MOBILE TOP HEADER & COMPACT TOUCH INDEX (< 768px)
+          MOBILE TOP HEADER & TOUCH INDEX (< 768px)
           ===================================================================== */}
-      <div className="md:hidden flex items-end justify-between gap-3 z-30 shrink-0">
-        <div>
-          <h2 className="font-display text-2xl sm:text-3xl tracking-tight uppercase leading-[0.94] text-ink">
+      <div className="md:hidden flex items-center justify-between gap-2 z-30 shrink-0 pb-1">
+        <div className="min-w-0">
+          <h2 className="font-display text-[22px] sm:text-3xl tracking-tight uppercase leading-[0.94] text-ink">
             EXPLORE AUROVILLE
           </h2>
-          <p className="mt-1 font-sans text-[11px] text-ink/75 font-light">
-            Illustrated interpretation · Scroll through 01–04
+          <p className="mt-0.5 font-sans text-[11px] text-ink/75 font-light">
+            Scroll or tap stops 01–04
           </p>
         </div>
-        <div className="flex items-center gap-1" role="tablist" aria-label="Atlas Stops">
+        <div className="flex items-center gap-0.5 shrink-0" role="tablist" aria-label="Atlas Stops">
           {ATLAS_LOCATIONS.map((loc, idx) => (
             <IndexOption
               key={loc.id}
@@ -236,26 +239,26 @@ export default function Chapter10Atlas({
             transform: `translate3d(0, ${(1 - introFade) * 14}px, 0)`,
           }}
         >
-          <h2 className="font-display text-4xl md:text-[40px] lg:text-[50px] tracking-tight uppercase leading-[0.94] text-ink">
+          <h2 className="font-display text-4xl md:text-[40px] lg:text-[50px] [@media(max-height:520px)]:text-2xl tracking-tight uppercase leading-[0.94] text-ink">
             EXPLORE
             <br />
             AUROVILLE
           </h2>
-          <p className="mt-3 font-sans text-xs lg:text-[13px] text-ink/85 leading-relaxed font-light max-w-[34ch] text-pretty">
+          <p className="mt-3 [@media(max-height:520px)]:hidden font-sans text-xs lg:text-[13px] text-ink/85 leading-relaxed font-light max-w-[34ch] text-pretty">
             Scroll through four landmarks anchored across red earth paths and shaded groves.
           </p>
         </div>
 
         {/* Left-Bottom Fixed-Dimension Editorial Print Panel (Scroll-Driven Mask Reveal) */}
         <div
-          className="w-full border border-border bg-paper-light p-3 lg:p-3.5"
+          className="w-full border border-border bg-paper-light p-3 lg:p-3.5 [@media(max-height:520px)]:p-2"
           style={{
             opacity: smooth(0.35, 0.9, enterProgress),
             transform: `translate3d(0, ${(1 - smooth(0.35, 0.9, enterProgress)) * 16}px, 0)`,
           }}
         >
           {/* Fixed 16:9 Architectural Folio Frame with Scrubbed Mask Transition */}
-          <div className="relative w-full aspect-[16/9] overflow-hidden bg-paper-alt border border-border/60">
+          <div className="relative w-full aspect-[16/9] [@media(max-height:520px)]:aspect-[16/7] overflow-hidden bg-paper-alt border border-border/60">
             <Image
               key={`base-${baseLocation.id}`}
               src={baseLocation.illustrationSrc}
@@ -288,7 +291,7 @@ export default function Chapter10Atlas({
           </div>
 
           {/* Synchronized Location Name & Factual Description */}
-          <div className="pt-3 pb-0.5 min-h-[96px]">
+          <div className="pt-3 [@media(max-height:520px)]:pt-1.5 pb-0.5 min-h-[96px] [@media(max-height:520px)]:min-h-0">
             <div className="flex items-baseline justify-between gap-2">
               <h3 className="font-sans font-semibold text-sm lg:text-[15px] text-ink tracking-tight">
                 {activeLocation.number} · {activeLocation.name}
@@ -297,7 +300,7 @@ export default function Chapter10Atlas({
                 {activeLocation.zone}
               </span>
             </div>
-            <p className="mt-1.5 font-sans text-xs text-ink/80 leading-relaxed font-light text-pretty">
+            <p className="mt-1.5 [@media(max-height:520px)]:mt-1 font-sans text-xs [@media(max-height:520px)]:text-[11px] [@media(max-height:520px)]:line-clamp-2 text-ink/80 leading-relaxed [@media(max-height:520px)]:leading-snug font-light text-pretty">
               {activeLocation.description}
             </p>
           </div>
@@ -306,15 +309,16 @@ export default function Chapter10Atlas({
 
       {/* =====================================================================
           CENTER STAGE: Layered High-Resolution Illustrated Map + Interactive SVG Overlays
-          Camera zooms/pans cleanly inside overflow-hidden frame (no pinned wrapper transform)
+          Expanded horizontal/vertical footprint on mobile for clear landmark inspection
           ===================================================================== */}
-      <div className="relative flex-1 overflow-hidden flex items-center justify-center min-h-[260px] md:min-h-0">
+      <div className="relative flex-1 -mx-4 sm:mx-0 overflow-hidden flex items-center justify-center min-h-[38dvh] md:min-h-0">
         {/* Soft Ivory Edge Feathering over map borders so transitions remain seamless */}
         <div
           className="pointer-events-none absolute inset-0 z-20"
           style={{
-            background:
-              "radial-gradient(circle at center, transparent 58%, rgba(246, 243, 235, 0.85) 95%, #F6F3EB 100%)",
+            background: isMobileViewport
+              ? "radial-gradient(circle at center, transparent 68%, rgba(246, 243, 235, 0.78) 95%, #F6F3EB 100%)"
+              : "radial-gradient(circle at center, transparent 58%, rgba(246, 243, 235, 0.85) 95%, #F6F3EB 100%)",
           }}
           aria-hidden="true"
         />
@@ -407,14 +411,14 @@ export default function Chapter10Atlas({
             </g>
 
             {/* Contextual Geographic District Micro-Labels Placed Clear of Ink Strokes */}
-            <g className="pointer-events-none font-sans text-[11px] uppercase tracking-[0.22em] fill-ink/60">
+            <g className="pointer-events-none font-sans text-[13px] md:text-[11px] uppercase tracking-[0.2em] fill-ink/65">
               <text x="696" y="152" textAnchor="middle">
                 Crown Road
               </text>
-              <text x="696" y="274" textAnchor="middle" className="text-[10px]">
+              <text x="696" y="274" textAnchor="middle" className="text-[12px] md:text-[10px]">
                 Peace Area
               </text>
-              <text x="412" y="380" textAnchor="middle" className="text-[9.5px]">
+              <text x="412" y="380" textAnchor="middle" className="text-[11.5px] md:text-[9.5px]">
                 International Zone
               </text>
             </g>
@@ -572,16 +576,16 @@ export default function Chapter10Atlas({
                     <circle
                       cx={loc.pin.x}
                       cy={loc.pin.y}
-                      r={isSelected ? 7.5 : 5.5}
+                      r={isSelected ? (isMobileViewport ? 10 : 7.5) : isMobileViewport ? 7.5 : 5.5}
                       fill="#FCFAF6"
                       stroke={isSelected ? "#B75E3F" : "#191917"}
-                      strokeWidth={isSelected ? 2.2 : 1.4}
+                      strokeWidth={isSelected ? 2.4 : 1.5}
                       style={{ transition: "all 240ms ease" }}
                     />
                     <circle
                       cx={loc.pin.x}
                       cy={loc.pin.y}
-                      r={isSelected ? 3.2 : 2.1}
+                      r={isSelected ? (isMobileViewport ? 4.4 : 3.2) : isMobileViewport ? 3 : 2.1}
                       fill={isSelected ? "#B75E3F" : "#191917"}
                     />
                   </g>
@@ -606,10 +610,10 @@ export default function Chapter10Atlas({
                   >
                     {/* Generous transparent interactive hit box */}
                     <rect
-                      x={loc.labelPos.align === "right" ? -144 : -4}
-                      y={-18}
-                      width={148}
-                      height={36}
+                      x={loc.labelPos.align === "right" ? -168 : -4}
+                      y={-22}
+                      width={172}
+                      height={42}
                       fill="transparent"
                     />
                     <text
@@ -618,9 +622,9 @@ export default function Chapter10Atlas({
                       textAnchor={loc.labelPos.align === "right" ? "end" : "start"}
                       paintOrder="stroke"
                       stroke="#F6F3EB"
-                      strokeWidth="6"
+                      strokeWidth="7"
                       strokeLinejoin="round"
-                      className={`font-sans text-[14.5px] tracking-wide pointer-events-none transition-colors ${
+                      className={`font-sans text-[21px] md:text-[14.5px] tracking-wide pointer-events-none transition-colors ${
                         isSelected
                           ? "fill-terracotta font-semibold"
                           : isHovered
@@ -631,13 +635,13 @@ export default function Chapter10Atlas({
                       {loc.name}
                     </text>
                     <line
-                      x1={loc.labelPos.align === "right" ? -130 : 0}
+                      x1={loc.labelPos.align === "right" ? (isMobileViewport ? -165 : -130) : 0}
                       y1={4}
-                      x2={loc.labelPos.align === "right" ? 0 : 130}
+                      x2={loc.labelPos.align === "right" ? 0 : isMobileViewport ? 165 : 130}
                       y2={4}
                       stroke={isSelected ? "#B75E3F" : isHovered ? "#191917" : "#9C988D"}
-                      strokeWidth={isSelected ? 1.5 : 0.8}
-                      strokeOpacity={isSelected ? 0.9 : isHovered ? 0.7 : 0.45}
+                      strokeWidth={isSelected ? 1.8 : 0.9}
+                      strokeOpacity={isSelected ? 0.92 : isHovered ? 0.72 : 0.48}
                     />
                   </g>
                 </g>
@@ -680,7 +684,7 @@ export default function Chapter10Atlas({
           MOBILE BOTTOM DETAIL PANEL (< 768px — Always Readable Within Pinned Frame)
           ===================================================================== */}
       <div className="md:hidden z-30 border border-border bg-paper-light p-2.5 flex items-center gap-3 shrink-0">
-        <div className="relative w-28 sm:w-36 aspect-[16/9] shrink-0 overflow-hidden bg-paper-alt border border-border/60">
+        <div className="relative w-24 sm:w-32 aspect-[4/3] shrink-0 overflow-hidden bg-paper-alt border border-border/60">
           <Image
             key={`mob-base-${baseLocation.id}`}
             src={baseLocation.illustrationSrc}

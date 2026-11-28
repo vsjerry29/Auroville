@@ -10,12 +10,14 @@ import { EditorialAction } from "@/components/ui/EditorialControls";
 
 interface ChapterNavigationProps {
   currentProgress: number;
-  onNavigate: (targetProgress: number) => void;
+  activeChapterId?: string;
+  onNavigate: (targetProgress: number, chapterId?: string) => void;
   onMenuOpenChange?: (isOpen: boolean) => void;
 }
 
 export default function ChapterNavigation({
   currentProgress,
+  activeChapterId,
   onNavigate,
   onMenuOpenChange,
 }: ChapterNavigationProps) {
@@ -29,11 +31,13 @@ export default function ChapterNavigation({
   const listRowRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const wasOpenRef = useRef(false);
 
-  // Synchronized active chapter derived cleanly from live document scroll progress
+  // Synchronized active chapter derived accurately from live chapter stage (or progress fallback)
   const activeChapter =
+    (activeChapterId && CHAPTERS.find((ch) => ch.id === activeChapterId)) ||
     CHAPTERS.find(
       (ch) => currentProgress >= ch.range[0] && currentProgress < ch.range[1]
-    ) || CHAPTERS[CHAPTERS.length - 1];
+    ) ||
+    CHAPTERS[CHAPTERS.length - 1];
 
   const activePreviewChapter =
     CHAPTERS.find((c) => c.id === previewChapterId) || activeChapter;
@@ -51,7 +55,7 @@ export default function ChapterNavigation({
 
   const handleSelect = useCallback(
     (ch: Chapter) => {
-      onNavigate(ch.targetProgress);
+      onNavigate(ch.targetProgress, ch.id);
       closeMenu();
     },
     [onNavigate, closeMenu]
@@ -401,7 +405,8 @@ export default function ChapterNavigation({
           {/* Minimal Bottom Guidance Line */}
           <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 md:px-14 py-4 border-t border-border/70 flex items-center justify-between text-ink-muted font-mono text-[10px] uppercase tracking-[0.18em] shrink-0">
             <span>Select chapter to navigate</span>
-            <span>Esc to return</span>
+            <span className="hidden md:inline">Esc to return</span>
+            <span className="md:hidden">Tap Close to return</span>
           </div>
         </div>
       )}
