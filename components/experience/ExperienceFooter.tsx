@@ -27,6 +27,9 @@ export default function ExperienceFooter({
   onBackToBeginning,
 }: ExperienceFooterProps) {
   const footerRef = useRef<HTMLElement>(null);
+  const wordmarkClipRef = useRef<HTMLDivElement>(null);
+  const wordmarkHeadingRef = useRef<HTMLHeadingElement>(null);
+  const wordmarkSpanRef = useRef<HTMLSpanElement>(null);
   const wordmarkMaskRef = useRef<HTMLDivElement>(null);
   const letterRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const taglineRef = useRef<HTMLDivElement>(null);
@@ -35,6 +38,53 @@ export default function ExperienceFooter({
   const dividerRef = useRef<HTMLDivElement>(null);
 
   const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    const clipEl = wordmarkClipRef.current;
+    const headingEl = wordmarkHeadingRef.current;
+    const spanEl = wordmarkSpanRef.current;
+    if (!clipEl || !headingEl || !spanEl) return;
+
+    let disposed = false;
+
+    const fitWordmark = () => {
+      if (disposed) return;
+      const availableWidth = clipEl.clientWidth;
+      if (availableWidth <= 0) return;
+
+      const currentFontPx = parseFloat(getComputedStyle(headingEl).fontSize);
+      const currentSpanWidth = spanEl.getBoundingClientRect().width;
+      if (!currentFontPx || currentSpanWidth <= 0) return;
+
+      // Leave a 4px optical safety margin so the rightmost E stroke never touches overflow-hidden
+      const targetWidth = Math.max(120, availableWidth - 4);
+      const widthFittedPx = currentFontPx * (targetWidth / currentSpanWidth);
+      const heightCapPx =
+        window.innerHeight <= 520
+          ? window.innerHeight * 0.22
+          : window.innerHeight * 0.34;
+      const nextFontPx = Math.max(28, Math.min(widthFittedPx, heightCapPx));
+
+      if (Math.abs(nextFontPx - currentFontPx) > 0.35) {
+        headingEl.style.fontSize = `${nextFontPx.toFixed(2)}px`;
+      }
+    };
+
+    fitWordmark();
+    document.fonts?.ready?.then(() => {
+      if (!disposed) fitWordmark();
+    });
+
+    const ro = new ResizeObserver(() => {
+      fitWordmark();
+    });
+    ro.observe(clipEl);
+
+    return () => {
+      disposed = true;
+      ro.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const footerEl = footerRef.current;
@@ -205,13 +255,22 @@ export default function ExperienceFooter({
         </div>
 
         {/* Center Main Focal Point: Oversized Solid Black Real HTML AUROVILLE Wordmark */}
-        <div className="my-auto py-2 md:py-4 overflow-hidden">
+        <div
+          ref={wordmarkClipRef}
+          style={{ containerType: "inline-size" }}
+          className="my-auto w-full py-2 md:py-4 overflow-hidden"
+        >
           <div ref={wordmarkMaskRef} className="will-change-transform">
             <h2
+              ref={wordmarkHeadingRef}
               aria-label="Auroville"
-              className="font-display text-[clamp(2.65rem,13.6vw,13.2rem)] [@media(max-height:520px)]:text-[18vh] leading-[0.86] tracking-[-0.04em] uppercase text-ink select-none whitespace-nowrap"
+              className="font-display text-[clamp(2.15rem,13.6cqw,10.1rem)] [@media(max-height:520px)]:text-[min(13.6cqw,18dvh)] leading-[0.88] tracking-[-0.04em] uppercase text-ink select-none whitespace-nowrap"
             >
-              <span aria-hidden="true" className="inline-flex">
+              <span
+                ref={wordmarkSpanRef}
+                aria-hidden="true"
+                className="inline-flex pr-[0.02em]"
+              >
                 {WORDMARK_LETTERS.map((char, idx) => (
                   <span
                     key={`${char}-${idx}`}
