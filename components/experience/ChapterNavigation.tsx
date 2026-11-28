@@ -186,7 +186,7 @@ export default function ChapterNavigation({
           className="absolute inset-x-0 top-0 h-20 pointer-events-none"
           style={{
             background:
-              "linear-gradient(to bottom, rgba(246, 243, 235, 0.94) 0%, rgba(246, 243, 235, 0.56) 62%, transparent 100%)",
+              "linear-gradient(to bottom, rgba(246, 243, 235, 0.98) 0%, rgba(246, 243, 235, 0.88) 46%, rgba(246, 243, 235, 0.35) 78%, transparent 100%)",
           }}
           aria-hidden="true"
         />

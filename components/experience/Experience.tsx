@@ -359,62 +359,67 @@ export default function Experience() {
       <main
         ref={mainRef}
         aria-hidden={menuOpen}
-        className="relative w-full bg-paper text-ink"
+        className="relative w-full bg-[#FAFAF8] text-ink"
         aria-label="Auroville: The Art of Interaction"
       >
-        <div ref={upperPinRef} className="relative w-full h-[100dvh] overflow-hidden">
-          <ExperienceStage progress={stageProgress} ch04EnterProgress={ch04EnterProgress} />
+        <div
+          id="story-layers"
+          className="relative z-20 w-full bg-paper border-b border-border/75 shadow-[0_18px_48px_rgba(25,25,23,0.06)]"
+        >
+          <div ref={upperPinRef} className="relative w-full h-[100dvh] overflow-hidden">
+            <ExperienceStage progress={stageProgress} ch04EnterProgress={ch04EnterProgress} />
+          </div>
+
+          <section
+            ref={ch04SectionRef}
+            id="chapter-04"
+            className="relative w-full h-[185dvh] md:h-[220vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
+            aria-label="Chapter 04: The Earth Remembers"
+          >
+            <Chapter04RedEarth
+              enterProgress={ch04EnterProgress}
+              progress={ch04ScrollProgress}
+              onNavigateStart={() => handleNavigate(0.0)}
+            />
+          </section>
+
+          <section
+            ref={ch05SectionRef}
+            id="chapter-05"
+            className="relative w-full h-[255dvh] md:h-[320vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
+            aria-label="Chapter 05: The Growing Forest"
+          >
+            <Chapter05GrowingForest
+              enterProgress={ch05EnterProgress}
+              progress={ch05ScrollProgress}
+            />
+          </section>
+
+          <section
+            ref={ch06SectionRef}
+            id="chapter-06"
+            className="relative w-full h-[240dvh] md:h-[300vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
+            aria-label="Chapter 06: The Water Story"
+          >
+            <Chapter06WaterStory
+              enterProgress={ch06EnterProgress}
+              progress={ch06ScrollProgress}
+            />
+          </section>
+
+          <section
+            ref={atlasSectionRef}
+            id="chapter-07"
+            className="relative w-full h-[100dvh] overflow-hidden bg-paper text-ink selection:bg-terracotta selection:text-paper-light border-t border-border/35"
+            aria-label="Chapter 07: The Interactive Atlas"
+          >
+            <Chapter10Atlas
+              enterProgress={ch07EnterProgress}
+              journeyProgress={ch07JourneyProgress}
+              onNavigateStop={handleNavigateAtlasStop}
+            />
+          </section>
         </div>
-
-        <section
-          ref={ch04SectionRef}
-          id="chapter-04"
-          className="relative w-full h-[185dvh] md:h-[220vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
-          aria-label="Chapter 04: The Earth Remembers"
-        >
-          <Chapter04RedEarth
-            enterProgress={ch04EnterProgress}
-            progress={ch04ScrollProgress}
-            onNavigateStart={() => handleNavigate(0.0)}
-          />
-        </section>
-
-        <section
-          ref={ch05SectionRef}
-          id="chapter-05"
-          className="relative w-full h-[255dvh] md:h-[320vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
-          aria-label="Chapter 05: The Growing Forest"
-        >
-          <Chapter05GrowingForest
-            enterProgress={ch05EnterProgress}
-            progress={ch05ScrollProgress}
-          />
-        </section>
-
-        <section
-          ref={ch06SectionRef}
-          id="chapter-06"
-          className="relative w-full h-[240dvh] md:h-[300vh] bg-paper text-ink selection:bg-terracotta selection:text-paper-light"
-          aria-label="Chapter 06: The Water Story"
-        >
-          <Chapter06WaterStory
-            enterProgress={ch06EnterProgress}
-            progress={ch06ScrollProgress}
-          />
-        </section>
-
-        <section
-          ref={atlasSectionRef}
-          id="chapter-07"
-          className="relative w-full h-[100dvh] overflow-hidden bg-paper text-ink selection:bg-terracotta selection:text-paper-light border-t border-border/35"
-          aria-label="Chapter 07: The Interactive Atlas"
-        >
-          <Chapter10Atlas
-            enterProgress={ch07EnterProgress}
-            journeyProgress={ch07JourneyProgress}
-            onNavigateStop={handleNavigateAtlasStop}
-          />
-        </section>
 
         <ExperienceFooter onBackToBeginning={() => handleNavigate(0.0)} />
       </main>
