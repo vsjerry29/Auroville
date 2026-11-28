@@ -166,11 +166,11 @@ export default function ExperienceFooter({
         return;
       }
 
-      // Trigger gravity pottery drop ONCE when the footer becomes meaningfully visible
+      // Trigger gravity pottery drop ONCE when the footer is mostly uncovered and AUROVILLE is readable
       ScrollTrigger.create({
         trigger: storyLayersEl,
         start: () =>
-          window.innerWidth < 768 ? "bottom 62%" : "bottom 54%",
+          window.innerWidth < 768 ? "bottom 50%" : "bottom 26%",
         once: true,
         refreshPriority: -3,
         invalidateOnRefresh: true,
@@ -179,7 +179,7 @@ export default function ExperienceFooter({
 
       if (
         storyLayersEl.getBoundingClientRect().bottom <=
-        window.innerHeight * (window.innerWidth < 768 ? 0.62 : 0.54)
+        window.innerHeight * (window.innerWidth < 768 ? 0.5 : 0.26)
       ) {
         setHasEnteredPottery(true);
       }

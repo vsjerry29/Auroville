@@ -57,6 +57,27 @@ def flood_background_mask(rgb: np.ndarray, tol_luma: int = 232, tol_chroma: int 
                 bg[ny, nx] = True
                 q.append((ny, nx))
 
+    # Also clear enclosed neutral paper cutouts inside handles (e.g. small pitcher handle loop)
+    pure_hole = (~bg) & (luma >= 244) & ((max_c - min_c) <= 10)
+    hy, hx = np.where(pure_hole)
+    seen_hole = np.zeros((h, w), dtype=bool)
+    for sy, sx in zip(hy.tolist(), hx.tolist()):
+        if seen_hole[sy, sx]:
+            continue
+        hq = deque([(sy, sx)])
+        seen_hole[sy, sx] = True
+        comp = []
+        while hq:
+            cy, cx = hq.popleft()
+            comp.append((cy, cx))
+            for ny, nx in ((cy - 1, cx), (cy + 1, cx), (cy, cx - 1), (cy, cx + 1)):
+                if 0 <= ny < h and 0 <= nx < w and pure_hole[ny, nx] and not seen_hole[ny, nx]:
+                    seen_hole[ny, nx] = True
+                    hq.append((ny, nx))
+        if len(comp) >= 40:
+            for py, px in comp:
+                bg[py, px] = True
+
     return bg
 
 
