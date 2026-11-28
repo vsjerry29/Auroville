@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useReducedMotion } from "@/lib/hooks/useReducedMotion";
 import { EditorialAction } from "@/components/ui/EditorialControls";
+import GravityPotteryOverlay, {
+  type FooterStageMetrics,
+} from "./GravityPotteryOverlay";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -38,16 +41,19 @@ export default function ExperienceFooter({
   const dividerRef = useRef<HTMLDivElement>(null);
 
   const prefersReducedMotion = useReducedMotion();
+  const [hasEnteredPottery, setHasEnteredPottery] = useState(false);
+  const [stageMetrics, setStageMetrics] = useState<FooterStageMetrics | null>(null);
 
   useEffect(() => {
+    const footerEl = footerRef.current;
     const clipEl = wordmarkClipRef.current;
     const headingEl = wordmarkHeadingRef.current;
     const spanEl = wordmarkSpanRef.current;
-    if (!clipEl || !headingEl || !spanEl) return;
+    if (!footerEl || !clipEl || !headingEl || !spanEl) return;
 
     let disposed = false;
 
-    const fitWordmark = () => {
+    const fitWordmarkAndMeasure = () => {
       if (disposed) return;
       const availableWidth = clipEl.clientWidth;
       if (availableWidth <= 0) return;
@@ -68,16 +74,57 @@ export default function ExperienceFooter({
       if (Math.abs(nextFontPx - currentFontPx) > 0.35) {
         headingEl.style.fontSize = `${nextFontPx.toFixed(2)}px`;
       }
+
+      const fRect = footerEl.getBoundingClientRect();
+      const cRect = clipEl.getBoundingClientRect();
+      const sRect = spanEl.getBoundingClientRect();
+      const clipStyles = getComputedStyle(clipEl);
+      const padTop = parseFloat(clipStyles.paddingTop) || 0;
+      const padBottom = parseFloat(clipStyles.paddingBottom) || 0;
+      const finalFontPx = parseFloat(getComputedStyle(headingEl).fontSize) || nextFontPx;
+
+      const nextMetrics: FooterStageMetrics = {
+        stageWidth: Math.round(fRect.width),
+        stageHeight: Math.round(fRect.height),
+        wordmarkLeft: Math.round(sRect.left - fRect.left),
+        wordmarkWidth: Math.round(sRect.width),
+        wordmarkTop: Math.round(cRect.top - fRect.top + padTop),
+        wordmarkBottom: Math.round(cRect.bottom - fRect.top - padBottom),
+        capHeight: Math.round(finalFontPx * 0.72),
+        taglineBottom: Math.round(
+          (taglineRef.current?.getBoundingClientRect().bottom ?? fRect.top + 110) - fRect.top
+        ),
+        dividerTop: Math.round(
+          (dividerRef.current?.getBoundingClientRect().top ?? fRect.bottom - 90) - fRect.top
+        ),
+        isMobile: window.innerWidth < 768,
+      };
+
+      setStageMetrics((prev) => {
+        if (
+          prev &&
+          Math.abs(prev.stageWidth - nextMetrics.stageWidth) <= 1 &&
+          Math.abs(prev.stageHeight - nextMetrics.stageHeight) <= 1 &&
+          Math.abs(prev.wordmarkWidth - nextMetrics.wordmarkWidth) <= 1 &&
+          Math.abs(prev.wordmarkBottom - nextMetrics.wordmarkBottom) <= 1 &&
+          Math.abs(prev.dividerTop - nextMetrics.dividerTop) <= 1 &&
+          prev.isMobile === nextMetrics.isMobile
+        ) {
+          return prev;
+        }
+        return nextMetrics;
+      });
     };
 
-    fitWordmark();
+    fitWordmarkAndMeasure();
     document.fonts?.ready?.then(() => {
-      if (!disposed) fitWordmark();
+      if (!disposed) fitWordmarkAndMeasure();
     });
 
     const ro = new ResizeObserver(() => {
-      fitWordmark();
+      fitWordmarkAndMeasure();
     });
+    ro.observe(footerEl);
     ro.observe(clipEl);
 
     return () => {
@@ -115,7 +162,26 @@ export default function ExperienceFooter({
 
       if (prefersReducedMotion || !storyLayersEl) {
         applyStaticRest();
+        setHasEnteredPottery(true);
         return;
+      }
+
+      // Trigger gravity pottery drop ONCE when the footer becomes meaningfully visible
+      ScrollTrigger.create({
+        trigger: storyLayersEl,
+        start: () =>
+          window.innerWidth < 768 ? "bottom 62%" : "bottom 54%",
+        once: true,
+        refreshPriority: -3,
+        invalidateOnRefresh: true,
+        onEnter: () => setHasEnteredPottery(true),
+      });
+
+      if (
+        storyLayersEl.getBoundingClientRect().bottom <=
+        window.innerHeight * (window.innerWidth < 768 ? 0.62 : 0.54)
+      ) {
+        setHasEnteredPottery(true);
       }
 
       // Desktop staggered architectural mask wave across the uncover travel
@@ -235,7 +301,7 @@ export default function ExperienceFooter({
     >
       <div className="w-full max-w-7xl mx-auto px-5 sm:px-8 md:px-14 pt-8 sm:pt-10 md:pt-28 pb-7 md:pb-10 flex-1 flex flex-col justify-between gap-8 [@media(max-height:520px)]:pt-16 [@media(max-height:520px)]:pb-5 [@media(max-height:520px)]:gap-4">
         {/* Top Row: Tagline (top-left) + Back to beginning (top-right on desktop; cleanly grouped on mobile) */}
-        <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-2 md:gap-6">
+        <div className="relative z-30 flex flex-col md:flex-row md:items-baseline justify-between gap-2 md:gap-6">
           <div ref={taglineRef}>
             <p className="font-serif italic text-xl sm:text-2xl md:text-[26px] text-ink font-light leading-snug">
               A place still becoming.
@@ -258,7 +324,7 @@ export default function ExperienceFooter({
         <div
           ref={wordmarkClipRef}
           style={{ containerType: "inline-size" }}
-          className="my-auto w-full py-2 md:py-4 overflow-hidden"
+          className="relative z-10 my-auto w-full py-2 md:py-4 overflow-hidden"
         >
           <div ref={wordmarkMaskRef} className="will-change-transform">
             <h2
@@ -288,7 +354,7 @@ export default function ExperienceFooter({
         </div>
 
         {/* Bottom Hairline Separator + Action Row (Desktop: bottom-right credit; Mobile: Back + Credit) */}
-        <div className="relative pt-4 md:pt-5 flex flex-wrap items-center justify-between md:justify-end gap-4">
+        <div className="relative z-30 pt-4 md:pt-5 flex flex-wrap items-center justify-between md:justify-end gap-4">
           <div
             ref={dividerRef}
             aria-hidden="true"
@@ -318,6 +384,13 @@ export default function ExperienceFooter({
           </div>
         </div>
       </div>
+
+      <GravityPotteryOverlay
+        footerRef={footerRef}
+        metrics={stageMetrics}
+        hasEntered={hasEnteredPottery || prefersReducedMotion}
+        prefersReducedMotion={prefersReducedMotion}
+      />
     </footer>
   );
 }
